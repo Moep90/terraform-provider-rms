@@ -44,4 +44,3 @@ resource "teltonika-rms_company" "test" {
 }
 `, name)
 }
-
