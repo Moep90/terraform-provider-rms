@@ -84,7 +84,7 @@ repos:
     rev: v1.35.1
     hooks:
       - id: yamllint
-        args: [-d, '{extends: relaxed, rules: {line-length: {max: 120}}}]
+        args: [-d, '{extends: relaxed, rules: {line-length: {max: 120}}}']
 
   # Shell scripts (if any)
   - repo: https://github.com/shellcheck-py/shellcheck-py

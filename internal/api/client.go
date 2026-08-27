@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -166,18 +167,13 @@ func (c *Client) decodeResponse(resp *http.Response, v interface{}) error {
 func (c *Client) Get(ctx context.Context, path string, params map[string]string, v interface{}) error {
 	reqURL := c.baseURL + path
 
-	// Add query parameters
+	// Add query parameters with proper escaping
 	if len(params) > 0 {
-		q := ""
+		q := url.Values{}
 		for k, v := range params {
-			if q != "" {
-				q += "&"
-			}
-			q += k + "=" + v
+			q.Add(k, v)
 		}
-		if q != "" {
-			reqURL += "?" + q
-		}
+		reqURL += "?" + q.Encode()
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
