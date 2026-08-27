@@ -20,10 +20,9 @@ const (
 	MaxRetries = 3
 	RetryDelay = 1 * time.Second
 )
+
 // ErrNotFound is returned when a resource is not found (404)
 var ErrNotFound = fmt.Errorf("resource not found")
-
-
 
 // Client represents the Teltonika RMS API client
 type Client struct {
