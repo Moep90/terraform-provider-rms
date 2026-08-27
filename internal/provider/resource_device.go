@@ -148,8 +148,24 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	data.ID = types.Int64Value(int64(result["id"].(float64)))
-	data.Status = types.StringValue(result["status"].(string))
+	id, ok := result["id"].(float64)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing ID",
+			"Could not parse ID from API response",
+		)
+		return
+	}
+	data.ID = types.Int64Value(int64(id))
+	status, ok := result["status"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing status",
+			"Could not parse status from API response",
+		)
+		return
+	}
+	data.Status = types.StringValue(status)
 
 	if firmware, ok := result["firmware"].(string); ok {
 		data.Firmware = types.StringValue(firmware)
@@ -176,8 +192,24 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	data.Name = types.StringValue(result["name"].(string))
-	data.Status = types.StringValue(result["status"].(string))
+	name, ok := result["name"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing name",
+			"Could not parse name from API response",
+		)
+		return
+	}
+	data.Name = types.StringValue(name)
+	status, ok := result["status"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing status",
+			"Could not parse status from API response",
+		)
+		return
+	}
+	data.Status = types.StringValue(status)
 
 	if firmware, ok := result["firmware"].(string); ok {
 		data.Firmware = types.StringValue(firmware)

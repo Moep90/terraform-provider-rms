@@ -91,7 +91,15 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	data.ID = types.Int64Value(int64(result["id"].(float64)))
+	id, ok := result["id"].(float64)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing ID",
+			"Could not parse ID from API response",
+		)
+		return
+	}
+	data.ID = types.Int64Value(int64(id))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -108,9 +116,33 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	data.Username = types.StringValue(result["username"].(string))
-	data.Email = types.StringValue(result["email"].(string))
-	data.Role = types.StringValue(result["role"].(string))
+	username, ok := result["username"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing username",
+			"Could not parse username from API response",
+		)
+		return
+	}
+	data.Username = types.StringValue(username)
+	email, ok := result["email"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing email",
+			"Could not parse email from API response",
+		)
+		return
+	}
+	data.Email = types.StringValue(email)
+	role, ok := result["role"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing role",
+			"Could not parse role from API response",
+		)
+		return
+	}
+	data.Role = types.StringValue(role)
 	if companyID, ok := result["company_id"].(float64); ok {
 		data.CompanyID = types.Int64Value(int64(companyID))
 	}

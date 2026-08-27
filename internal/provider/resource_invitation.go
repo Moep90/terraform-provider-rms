@@ -96,7 +96,15 @@ func (r *InvitationResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	data.ID = types.Int64Value(int64(result["id"].(float64)))
+	id, ok := result["id"].(float64)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing ID",
+			"Could not parse ID from API response",
+		)
+		return
+	}
+	data.ID = types.Int64Value(int64(id))
 	if createdAt, ok := result["created_at"].(string); ok {
 		data.CreatedAt = types.StringValue(createdAt)
 	}
@@ -117,8 +125,24 @@ func (r *InvitationResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	data.Email = types.StringValue(result["email"].(string))
-	data.Role = types.StringValue(result["role"].(string))
+	email, ok := result["email"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing email",
+			"Could not parse email from API response",
+		)
+		return
+	}
+	data.Email = types.StringValue(email)
+	role, ok := result["role"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing role",
+			"Could not parse role from API response",
+		)
+		return
+	}
+	data.Role = types.StringValue(role)
 	if companyID, ok := result["company_id"].(float64); ok {
 		data.CompanyID = types.Int64Value(int64(companyID))
 	}

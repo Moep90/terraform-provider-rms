@@ -97,8 +97,24 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	data.ID = types.Int64Value(int64(result["id"].(float64)))
-	data.Name = types.StringValue(result["name"].(string))
+	id, ok := result["id"].(float64)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing ID",
+			"Could not parse ID from API response",
+		)
+		return
+	}
+	data.ID = types.Int64Value(int64(id))
+	name, ok := result["name"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing name",
+			"Could not parse name from API response",
+		)
+		return
+	}
+	data.Name = types.StringValue(name)
 
 	if deviceCount, ok := result["device_count"].(float64); ok {
 		data.DeviceCount = types.Int64Value(int64(deviceCount))
@@ -121,7 +137,15 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	data.Name = types.StringValue(result["name"].(string))
+	name, ok := result["name"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing name",
+			"Could not parse name from API response",
+		)
+		return
+	}
+	data.Name = types.StringValue(name)
 
 	if color, ok := result["color"].(string); ok {
 		data.Color = types.StringValue(color)

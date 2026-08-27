@@ -200,3 +200,35 @@ func TestClientForbiddenErrorSpecific(t *testing.T) {
 		t.Errorf("Expected error to contain 'forbidden', got: %s", err.Error())
 	}
 }
+
+func TestClientTypeSafety(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": 1, "company_name": "Test"}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(context.Background(), "test-token")
+	client.baseURL = server.URL
+
+	var result map[string]interface{}
+	err := client.Get(context.Background(), "/test", nil, &result)
+	if err != nil {
+		t.Fatalf("Expected no error, got: %s", err)
+	}
+
+	id, ok := result["id"].(float64)
+	if !ok {
+		t.Error("Expected id to be float64")
+	} else if id != 1 {
+		t.Errorf("Expected id to be 1, got %f", id)
+	}
+
+	name, ok := result["company_name"].(string)
+	if !ok {
+		t.Error("Expected company_name to be string")
+	} else if name != "Test" {
+		t.Errorf("Expected company_name to be 'Test', got '%s'", name)
+	}
+}
