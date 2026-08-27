@@ -2,6 +2,7 @@
 
 # Binary name
 BINARY_NAME=terraform-provider-teltonika-rms
+BIN_DIR=bin
 
 # Go parameters
 GOCMD=go
@@ -32,12 +33,14 @@ all: build
 ## Build the provider
 build:
 	@echo "Building $(BINARY_NAME)..."
-	$(GOBUILD) $(LDFLAGS) -o $(BINARY_NAME) ./$(CMD_DIR)
+	@mkdir -p $(BIN_DIR)
+	$(GOBUILD) $(LDFLAGS) -o $(BIN_DIR)/$(BINARY_NAME) ./$(CMD_DIR)
 
 ## Build with debug symbols
 build-debug:
 	@echo "Building $(BINARY_NAME) with debug symbols..."
-	$(GOBUILD) -gcflags="all=-N -l" -o $(BINARY_NAME)-debug ./$(CMD_DIR)
+	@mkdir -p $(BIN_DIR)
+	$(GOBUILD) -gcflags="all=-N -l" -o $(BIN_DIR)/$(BINARY_NAME)-debug ./$(CMD_DIR)
 
 ## Run tests
 test:
@@ -85,8 +88,8 @@ check: fmt-check vet lint
 ## Clean build artifacts
 clean:
 	@echo "Cleaning..."
-	rm -f $(BINARY_NAME)
-	rm -f $(BINARY_NAME)-debug
+	rm -f $(BIN_DIR)/$(BINARY_NAME)
+	rm -f $(BIN_DIR)/$(BINARY_NAME)-debug
 	rm -f coverage.out coverage.html
 	rm -rf dist/ build/
 
@@ -111,7 +114,7 @@ release-check:
 install: build
 	@echo "Installing provider locally..."
 	mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)
-	cp $(BINARY_NAME) ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)/
+	cp $(BIN_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)/
 
 ## Generate documentation
 docs:
