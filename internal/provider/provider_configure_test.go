@@ -52,7 +52,7 @@ func TestResourceConfigure(t *testing.T) {
 				t.Skip("Resource does not implement ResourceWithConfigure")
 			}
 
-			configureRes.Configure(nil, resource.ConfigureRequest{ProviderData: client}, nil)
+			configureRes.Configure(context.Background(), resource.ConfigureRequest{ProviderData: client}, nil)
 
 			// Use reflection to check if client was set
 			// This is a simple check - in real code we'd access the client field directly
@@ -83,7 +83,7 @@ func TestUpdateReadsFromPlan(t *testing.T) {
 			}
 
 			client := api.NewClient(context.Background(), "test-token")
-			configureRes.Configure(nil, resource.ConfigureRequest{ProviderData: client}, nil)
+			configureRes.Configure(context.Background(), resource.ConfigureRequest{ProviderData: client}, nil)
 
 			// We can't directly test the Update logic without mocking the API,
 			// but we can verify the resource is configured correctly
