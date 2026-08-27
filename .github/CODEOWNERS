@@ -2,21 +2,21 @@
 # This file defines who is responsible for different parts of the codebase
 
 # Default owner - everything
-* @YOUR_USERNAME
+* @teltonika-rms
 
 # Go code
-*.go @YOUR_USERNAME
+*.go @teltonika-rms
 
 # Documentation
-*.md @YOUR_USERNAME
-website/ @YOUR_USERNAME
+*.md @teltonika-rms
+website/ @teltonika-rms
 
 # GitHub Actions
-.github/ @YOUR_USERNAME
+.github/ @teltonika-rms
 
 # Terraform examples
-examples/ @YOUR_USERNAME
+examples/ @teltonika-rms
 
 # Tests
-*_test.go @YOUR_USERNAME
-tests/ @YOUR_USERNAME
+*_test.go @teltonika-rms
+tests/ @teltonika-rms

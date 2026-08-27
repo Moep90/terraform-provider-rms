@@ -10,7 +10,7 @@ updates:
       timezone: "UTC"
     open-pull-requests-limit: 10
     reviewers:
-      - "YOUR_USERNAME"
+      - "teltonika-rms"
     labels:
       - "dependencies"
       - "go"
@@ -32,7 +32,7 @@ updates:
       timezone: "UTC"
     open-pull-requests-limit: 10
     reviewers:
-      - "YOUR_USERNAME"
+      - "teltonika-rms"
     labels:
       - "dependencies"
       - "github-actions"

@@ -98,8 +98,8 @@ jobs:
 
       - name: Install Provider
         run: |
-          mkdir -p ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64
-          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64/
+          mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64
+          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64/
 
       - name: Run Tofu fmt check
         run: tofu fmt -check -diff ./examples/
@@ -126,8 +126,8 @@ jobs:
 
       - name: Install Provider
         run: |
-          mkdir -p ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64
-          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64/
+          mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64
+          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64/
 
       - name: Run Terraform fmt check
         run: terraform fmt -check -diff ./examples/

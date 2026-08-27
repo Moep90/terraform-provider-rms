@@ -1,7 +1,7 @@
 # Terraform Provider for Teltonika RMS
 
-[![CI](https://github.com/YOUR_USERNAME/terraform-provider-teltonika-rms/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/terraform-provider-teltonika-rms/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/YOUR_USERNAME/terraform-provider-teltonika-rms)](https://goreportcard.com/report/github.com/YOUR_USERNAME/terraform-provider-teltonika-rms)
+[![CI](https://github.com/teltonika-rms/terraform-provider-teltonika-rms/actions/workflows/ci.yml/badge.svg)](https://github.com/teltonika-rms/terraform-provider-teltonika-rms/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/teltonika-rms/terraform-provider-teltonika-rms)](https://goreportcard.com/report/github.com/teltonika-rms/terraform-provider-teltonika-rms)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Disclaimer**: This is a community-maintained Terraform/OpenTofu provider for Teltonika RMS. It is not officially supported by Teltonika Networks.
@@ -34,7 +34,7 @@ terraform {
 
   required_providers {
     teltonika-rms = {
-      source  = "YOUR_USERNAME/teltonika-rms"
+      source  = "teltonika-rms/teltonika-rms"
       version = ">= 0.1.0"
     }
   }
@@ -51,7 +51,7 @@ terraform {
 
   required_providers {
     teltonika-rms = {
-      source  = "YOUR_USERNAME/teltonika-rms"
+      source  = "teltonika-rms/teltonika-rms"
       version = ">= 0.1.0"
     }
   }
@@ -167,7 +167,7 @@ data "teltonika-rms_tags" "all" {}
 ### Building the Provider
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/terraform-provider-teltonika-rms
+git clone https://github.com/teltonika-rms/terraform-provider-teltonika-rms
 cd terraform-provider-teltonika-rms
 go build -o terraform-provider-teltonika-rms ./cmd/terraform-provider-teltonika-rms
 ```
@@ -187,8 +187,8 @@ go test -v ./tests/acc/...
 
 ```bash
 # Install the provider locally
-mkdir -p ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64
-cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64/
+mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64
+cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64/
 
 # Create a terraform.tfvars file with your token
 echo 'teltonika_token = "your-token"' > terraform.tfvars

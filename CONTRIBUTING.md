@@ -19,7 +19,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to create a wel
 
 ```bash
 # Fork the repository
-git clone https://github.com/YOUR_USERNAME/terraform-provider-teltonika-rms.git
+git clone https://github.com/teltonika-rms/terraform-provider-teltonika-rms.git
 cd terraform-provider-teltonika-rms
 
 # Install dependencies

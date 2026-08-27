@@ -51,5 +51,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented secure token handling
 - Added security policy documentation
 
-[Unreleased]: https://github.com/YOUR_USERNAME/terraform-provider-teltonika-rms/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/YOUR_USERNAME/terraform-provider-teltonika-rms/releases/tag/v0.1.0
+[Unreleased]: https://github.com/teltonika-rms/terraform-provider-teltonika-rms/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/teltonika-rms/terraform-provider-teltonika-rms/releases/tag/v0.1.0

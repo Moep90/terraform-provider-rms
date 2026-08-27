@@ -9,7 +9,7 @@
     "dependencies"
   ],
   "assignees": [
-    "YOUR_USERNAME"
+    "teltonika-rms"
   ],
   "rebaseWhen": "behind-base-branch",
   "prHourlyLimit": 2,
