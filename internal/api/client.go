@@ -29,6 +29,7 @@ type Client struct {
 	baseURL    string
 	httpClient *http.Client
 	token      string
+	maxRetries int
 }
 
 // NewClient creates a new Teltonika RMS API client
@@ -42,7 +43,8 @@ func NewClient(ctx context.Context, token string) *Client {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: token,
+		token:      token,
+		maxRetries: MaxRetries,
 	}
 }
 
@@ -53,7 +55,26 @@ func NewClientWithBaseURL(baseURL, token string) *Client {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: token,
+		token:      token,
+		maxRetries: MaxRetries,
+	}
+}
+
+// NewClientWithOptions creates a client with custom options
+func NewClientWithOptions(ctx context.Context, token, baseURL string, timeout time.Duration, maxRetries int) *Client {
+	tflog.Info(ctx, "Creating Teltonika RMS API client", map[string]interface{}{
+		"base_url":  baseURL,
+		"timeout":   timeout.String(),
+		"max_retry": maxRetries,
+	})
+
+	return &Client{
+		baseURL: baseURL,
+		httpClient: &http.Client{
+			Timeout: timeout,
+		},
+		token:      token,
+		maxRetries: maxRetries,
 	}
 }
 
@@ -69,8 +90,7 @@ func (c *Client) setRequestHeaders(req *http.Request) {
 func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error {
 	c.setRequestHeaders(req)
 
-	var lastErr error
-	for attempt := 0; attempt < MaxRetries; attempt++ {
+	for attempt := 0; attempt < c.maxRetries; attempt++ {
 		if attempt > 0 {
 			tflog.Warn(ctx, "Retrying request", map[string]interface{}{
 				"attempt": attempt + 1,
@@ -81,13 +101,11 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
-			lastErr = err
 			continue
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode >= 500 {
-			lastErr = fmt.Errorf("server error: %s", resp.Status)
 			continue
 		}
 
@@ -106,7 +124,7 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 		return c.decodeResponse(resp, v)
 	}
 
-	return fmt.Errorf("request failed after %d attempts: %w", MaxRetries, lastErr)
+	return fmt.Errorf("request failed after %d attempts", c.maxRetries)
 }
 
 // handleErrorResponse decodes and returns error details from response

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
@@ -107,7 +108,13 @@ func (p *TeltonikaProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Create API client
-	client := api.NewClient(ctx, data.Token.ValueString())
+	client := api.NewClientWithOptions(
+		ctx,
+		data.Token.ValueString(),
+		data.BaseURL.ValueString(),
+		time.Duration(data.Timeout.ValueInt64())*time.Second,
+		int(data.MaxRetry.ValueInt64()),
+	)
 
 	resp.DataSourceData = client
 	resp.ResourceData = client

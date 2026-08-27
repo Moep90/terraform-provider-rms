@@ -249,6 +249,12 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
+	if status, ok := updatedResult["status"].(string); ok {
+		data.Status = types.StringValue(status)
+	}
+	if firmware, ok := updatedResult["firmware"].(string); ok {
+		data.Firmware = types.StringValue(firmware)
+	}
 	if createdAt, ok := updatedResult["created_at"].(string); ok {
 		data.CreatedAt = types.StringValue(createdAt)
 	}

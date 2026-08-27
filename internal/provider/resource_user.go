@@ -168,25 +168,6 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	var updatedResult map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/users/%d", data.ID.ValueInt64()), nil, &updatedResult); err != nil {
-		resp.Diagnostics.AddError("Error reading user", fmt.Sprintf("Could not read user %d: %s", data.ID.ValueInt64(), err))
-		return
-	}
-
-	if username, ok := updatedResult["username"].(string); ok {
-		data.Username = types.StringValue(username)
-	}
-	if email, ok := updatedResult["email"].(string); ok {
-		data.Email = types.StringValue(email)
-	}
-	if role, ok := updatedResult["role"].(string); ok {
-		data.Role = types.StringValue(role)
-	}
-	if companyID, ok := updatedResult["company_id"].(float64); ok {
-		data.CompanyID = types.Int64Value(int64(companyID))
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

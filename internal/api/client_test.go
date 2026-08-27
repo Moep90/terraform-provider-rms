@@ -55,7 +55,8 @@ func TestClientGet(t *testing.T) {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: "test-token",
+		token:      "test-token",
+		maxRetries: MaxRetries,
 	}
 
 	var result map[string]interface{}
@@ -79,7 +80,8 @@ func TestClientPost(t *testing.T) {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: "test-token",
+		token:      "test-token",
+		maxRetries: MaxRetries,
 	}
 
 	var result map[string]interface{}
@@ -103,7 +105,8 @@ func TestClientPut(t *testing.T) {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: "test-token",
+		token:      "test-token",
+		maxRetries: MaxRetries,
 	}
 
 	var result map[string]interface{}
@@ -127,7 +130,8 @@ func TestClientDelete(t *testing.T) {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: "test-token",
+		token:      "test-token",
+		maxRetries: MaxRetries,
 	}
 
 	var result map[string]interface{}
@@ -149,7 +153,8 @@ func TestClientAuthenticationErrors(t *testing.T) {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: "invalid-token",
+		token:      "invalid-token",
+		maxRetries: MaxRetries,
 	}
 
 	var result map[string]interface{}
@@ -171,7 +176,8 @@ func TestClientForbiddenErrors(t *testing.T) {
 		httpClient: &http.Client{
 			Timeout: Timeout,
 		},
-		token: "test-token",
+		token:      "test-token",
+		maxRetries: MaxRetries,
 	}
 
 	var result map[string]interface{}
@@ -188,8 +194,7 @@ func TestClientForbiddenErrorSpecific(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(context.Background(), "test-token")
-	client.baseURL = server.URL
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
 
 	err := client.Get(context.Background(), "/test", nil, nil)
 	if err == nil {
@@ -210,8 +215,7 @@ func TestClientTypeSafety(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(context.Background(), "test-token")
-	client.baseURL = server.URL
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
 
 	var result map[string]interface{}
 	err := client.Get(context.Background(), "/test", nil, &result)
@@ -241,8 +245,7 @@ func TestClientNotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(context.Background(), "test-token")
-	client.baseURL = server.URL
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
 
 	var result map[string]interface{}
 	err := client.Get(context.Background(), "/test", nil, &result)
@@ -262,8 +265,7 @@ func TestClientDeleteWithNilTarget(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(context.Background(), "test-token")
-	client.baseURL = server.URL
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
 
 	// Delete with nil target should not error
 	err := client.Delete(context.Background(), "/test", nil)
@@ -279,8 +281,7 @@ func TestClientDeleteWithEmptyBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(context.Background(), "test-token")
-	client.baseURL = server.URL
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
 
 	// Delete with empty body should not error
 	err := client.Delete(context.Background(), "/test", nil)
