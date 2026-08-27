@@ -99,7 +99,7 @@ func (p *TeltonikaProvider) Configure(ctx context.Context, req provider.Configur
 		data.MaxRetry = types.Int64Value(3)
 	}
 
-	if data.Token.IsNull() {
+	if data.Token.IsNull() || data.Token.IsUnknown() {
 		resp.Diagnostics.AddError(
 			"Missing API Token",
 			"The provider requires an API token. Set the token attribute or TELTONIKA_RMS_TOKEN environment variable.",
