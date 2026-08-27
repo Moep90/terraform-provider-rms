@@ -1,0 +1,22 @@
+# Code owners for the Terraform Provider Teltonika RMS
+# This file defines who is responsible for different parts of the codebase
+
+# Default owner - everything
+* @YOUR_USERNAME
+
+# Go code
+*.go @YOUR_USERNAME
+
+# Documentation
+*.md @YOUR_USERNAME
+website/ @YOUR_USERNAME
+
+# GitHub Actions
+.github/ @YOUR_USERNAME
+
+# Terraform examples
+examples/ @YOUR_USERNAME
+
+# Tests
+*_test.go @YOUR_USERNAME
+tests/ @YOUR_USERNAME

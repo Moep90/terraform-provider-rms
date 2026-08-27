@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.21.x, 1.22.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Go Mod Download
+        run: go mod download
+
+      - name: Go Vet
+        run: go vet ./...
+
+      - name: Go Test
+        run: go test -v -race -cover ./...
+
+      - name: Build
+        run: go build -v ./...
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+          cache: true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+  terraform-provider-build:
+    name: Terraform Provider Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Run go mod tidy
+        run: go mod tidy
+
+      - name: Ensure no changes
+        run: git diff --exit-code
+
+  tofu-test:
+    name: OpenTofu Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: Build Provider
+        run: go build -o terraform-provider-teltonika-rms ./cmd/terraform-provider-teltonika-rms
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
+      - name: Install Provider
+        run: |
+          mkdir -p ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64
+          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64/
+
+      - name: Run Tofu fmt check
+        run: tofu fmt -check -diff ./examples/
+
+  terraform-test:
+    name: Terraform Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: Build Provider
+        run: go build -o terraform-provider-teltonika-rms ./cmd/terraform-provider-teltonika-rms
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Install Provider
+        run: |
+          mkdir -p ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64
+          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/YOUR_USERNAME/teltonika-rms/1.0.0/linux_amd64/
+
+      - name: Run Terraform fmt check
+        run: terraform fmt -check -diff ./examples/
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@v2.19.0
+        with:
+          args: -exclude=G104,G107,G204 ./...
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: Check Go Modules
+        run: |
+          go mod verify
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Check Formatting
+        run: |
+          go fmt ./...
+          git diff --exit-code

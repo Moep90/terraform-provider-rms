@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Teltonika RMS Documentation
+    url: https://developers.rms.teltonika-networks.com/
+    about: Official Teltonika RMS API documentation
+  - name: Terraform Provider Documentation
+    url: https://developer.hashicorp.com/terraform/plugin
+    about: HashiCorp Terraform Provider development guide
+  - name: OpenTofu Documentation
+    url: https://opentofu.org/docs/
+    about: OpenTofu documentation
+  - name: Go Documentation
+    url: https://go.dev/doc/
+    about: Official Go documentation

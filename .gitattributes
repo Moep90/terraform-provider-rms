@@ -1,0 +1,21 @@
+# Set the default behavior, in case people don't have core.autocrlf set
+* text=auto
+
+# Ensure LF line endings for source files
+*.go text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+# Binary files should not have line ending conversion
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+# Terraform state files should not have line ending conversion
+*.tfstate binary
+*.tfstate.lock.info binary
+
+# Generated files
+terraform-provider-teltonika-rms binary

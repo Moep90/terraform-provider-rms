@@ -1,0 +1,72 @@
+version: "2"
+run:
+  tests: true
+  build-tags:
+    - all
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - gofmt
+    - goimports
+    - revive
+    - durationcheck
+    - errname
+    - exportloopref
+    - gosec
+    - nilerr
+    - predeclared
+    - tenv
+    - usestdlibvars
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+  revive:
+    enable-all-rules: false
+    rules:
+      - name: unused-parameter
+        severity: warning
+        disabled: false
+  gosec:
+    severity: medium
+    confidence: medium
+    concurrency: 8
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes: github.com/teltonika-rms/terraform-provider-teltonika-rms
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

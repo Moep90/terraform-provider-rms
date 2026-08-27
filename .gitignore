@@ -1,0 +1,82 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+terraform-provider-teltonika-rms
+terraform-provider-teltonika-rms_*.zip
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+*.cover
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# IDE & Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Terraform
+*.tfstate
+*.tfstate.lock.info
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Build directories
+dist/
+build/
+bin/
+out/
+
+# Documentation generated files
+website/docs/generated/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Semantic Release
+.changelog/
+
+# Generated documentation
+docs/generated/
+
+# Go module cache (optional - uncomment if needed)
+# go mod cache
+# ~/go/pkg/mod
