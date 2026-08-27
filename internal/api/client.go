@@ -20,6 +20,10 @@ const (
 	MaxRetries = 3
 	RetryDelay = 1 * time.Second
 )
+// ErrNotFound is returned when a resource is not found (404)
+var ErrNotFound = fmt.Errorf("resource not found")
+
+
 
 // Client represents the Teltonika RMS API client
 type Client struct {
@@ -97,6 +101,10 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 
 // handleErrorResponse decodes and returns error details from response
 func (c *Client) handleErrorResponse(resp *http.Response) error {
+	if resp.StatusCode == http.StatusNotFound {
+		return ErrNotFound
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("API error %d: %s", resp.StatusCode, resp.Status)

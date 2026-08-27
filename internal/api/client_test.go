@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -230,5 +231,26 @@ func TestClientTypeSafety(t *testing.T) {
 		t.Error("Expected company_name to be string")
 	} else if name != "Test" {
 		t.Errorf("Expected company_name to be 'Test', got '%s'", name)
+	}
+}
+
+func TestClientNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error": "not found"}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(context.Background(), "test-token")
+	client.baseURL = server.URL
+
+	var result map[string]interface{}
+	err := client.Get(context.Background(), "/test", nil, &result)
+	if err == nil {
+		t.Fatal("Expected error for 404, got nil")
+	}
+
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("Expected ErrNotFound, got: %s", err)
 	}
 }

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -147,6 +148,10 @@ func (r *CompanyResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	var result map[string]interface{}
 	if err := r.client.Get(ctx, fmt.Sprintf("/companies/%d", data.ID.ValueInt64()), nil, &result); err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error reading company",
 			fmt.Sprintf("Could not read company %d: %s", data.ID.ValueInt64(), err),
