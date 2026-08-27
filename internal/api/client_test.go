@@ -254,3 +254,37 @@ func TestClientNotFound(t *testing.T) {
 		t.Errorf("Expected ErrNotFound, got: %s", err)
 	}
 }
+
+func TestClientDeleteWithNilTarget(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"success":true}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(context.Background(), "test-token")
+	client.baseURL = server.URL
+
+	// Delete with nil target should not error
+	err := client.Delete(context.Background(), "/test", nil)
+	if err != nil {
+		t.Fatalf("Expected no error when deleting with nil target, got: %s", err)
+	}
+}
+
+func TestClientDeleteWithEmptyBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// Empty body
+	}))
+	defer server.Close()
+
+	client := NewClient(context.Background(), "test-token")
+	client.baseURL = server.URL
+
+	// Delete with empty body should not error
+	err := client.Delete(context.Background(), "/test", nil)
+	if err != nil {
+		t.Fatalf("Expected no error when deleting with empty body, got: %s", err)
+	}
+}

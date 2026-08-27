@@ -46,6 +46,17 @@ func NewClient(ctx context.Context, token string) *Client {
 	}
 }
 
+// NewClientWithBaseURL creates a client with a custom base URL (for testing)
+func NewClientWithBaseURL(baseURL, token string) *Client {
+	return &Client{
+		baseURL: baseURL,
+		httpClient: &http.Client{
+			Timeout: Timeout,
+		},
+		token: token,
+	}
+}
+
 // setRequestHeaders sets common headers for all requests
 func (c *Client) setRequestHeaders(req *http.Request) {
 	req.Header.Set("User-Agent", UserAgent)
@@ -124,6 +135,10 @@ func (c *Client) decodeResponse(resp *http.Response, v interface{}) error {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if v == nil || len(body) == 0 {
+		return nil
 	}
 
 	return json.Unmarshal(body, v)

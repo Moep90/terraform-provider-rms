@@ -180,6 +180,16 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	var updatedResult map[string]interface{}
+	if err := r.client.Get(ctx, fmt.Sprintf("/tags/%d", data.ID.ValueInt64()), nil, &updatedResult); err != nil {
+		resp.Diagnostics.AddError("Error reading tag", fmt.Sprintf("Could not read tag %d: %s", data.ID.ValueInt64(), err))
+		return
+	}
+
+	if deviceCount, ok := updatedResult["device_count"].(float64); ok {
+		data.DeviceCount = types.Int64Value(int64(deviceCount))
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

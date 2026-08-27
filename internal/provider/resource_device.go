@@ -243,6 +243,16 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
+	var updatedResult map[string]interface{}
+	if err := r.client.Get(ctx, fmt.Sprintf("/devices/%d", data.ID.ValueInt64()), nil, &updatedResult); err != nil {
+		resp.Diagnostics.AddError("Error reading device", fmt.Sprintf("Could not read device %d: %s", data.ID.ValueInt64(), err))
+		return
+	}
+
+	if createdAt, ok := updatedResult["created_at"].(string); ok {
+		data.CreatedAt = types.StringValue(createdAt)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

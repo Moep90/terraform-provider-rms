@@ -220,6 +220,23 @@ func (r *CompanyResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
+	var updatedResult map[string]interface{}
+	if err := r.client.Get(ctx, fmt.Sprintf("/companies/%d", data.ID.ValueInt64()), nil, &updatedResult); err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading company",
+			fmt.Sprintf("Could not read company %d: %s", data.ID.ValueInt64(), err),
+		)
+		return
+	}
+
+	if deviceCount, ok := updatedResult["device_count"].(float64); ok {
+		data.DeviceCount = types.Int64Value(int64(deviceCount))
+	}
+
+	if createdAt, ok := updatedResult["created_at"].(string); ok {
+		data.CreatedAt = types.StringValue(createdAt)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
