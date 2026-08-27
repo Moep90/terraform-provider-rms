@@ -80,3 +80,11 @@ docs/generated/
 # Go module cache (optional - uncomment if needed)
 # go mod cache
 # ~/go/pkg/mod
+
+# Acceptance test artifacts
+tests/acceptance/*.tfstate
+tests/acceptance/*.tfstate.backup
+
+# Documentation build artifacts
+docs/_build/
+docs/build/
