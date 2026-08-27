@@ -85,11 +85,31 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	var users []UserDataModel
 	for _, u := range result {
+		id, ok := u["id"].(float64)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing user ID", "Could not parse id from API response")
+			return
+		}
+		username, ok := u["username"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing username", "Could not parse username from API response")
+			return
+		}
+		email, ok := u["email"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing email", "Could not parse email from API response")
+			return
+		}
+		role, ok := u["role"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing role", "Could not parse role from API response")
+			return
+		}
 		user := UserDataModel{
-			ID:       types.Int64Value(int64(u["id"].(float64))),
-			Username: types.StringValue(u["username"].(string)),
-			Email:    types.StringValue(u["email"].(string)),
-			Role:     types.StringValue(u["role"].(string)),
+			ID:       types.Int64Value(int64(id)),
+			Username: types.StringValue(username),
+			Email:    types.StringValue(email),
+			Role:     types.StringValue(role),
 		}
 		if companyID, ok := u["company_id"].(float64); ok {
 			user.CompanyID = types.Int64Value(int64(companyID))

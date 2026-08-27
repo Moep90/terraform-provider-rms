@@ -91,7 +91,15 @@ func (d *CompanyDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	data.CompanyName = types.StringValue(result["company_name"].(string))
+	if companyName, ok := result["company_name"].(string); !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing company name",
+			"Could not parse company_name from API response",
+		)
+		return
+	} else {
+		data.CompanyName = types.StringValue(companyName)
+	}
 
 	if parentID, ok := result["parent_id"].(float64); ok {
 		data.ParentID = types.Int64Value(int64(parentID))

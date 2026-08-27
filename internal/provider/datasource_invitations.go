@@ -85,10 +85,25 @@ func (d *InvitationsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	var invitations []InvitationDataModel
 	for _, inv := range result {
+		id, ok := inv["id"].(float64)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing invitation ID", "Could not parse id from API response")
+			return
+		}
+		email, ok := inv["email"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing invitation email", "Could not parse email from API response")
+			return
+		}
+		role, ok := inv["role"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing invitation role", "Could not parse role from API response")
+			return
+		}
 		invitation := InvitationDataModel{
-			ID:    types.Int64Value(int64(inv["id"].(float64))),
-			Email: types.StringValue(inv["email"].(string)),
-			Role:  types.StringValue(inv["role"].(string)),
+			ID:    types.Int64Value(int64(id)),
+			Email: types.StringValue(email),
+			Role:  types.StringValue(role),
 		}
 		if companyID, ok := inv["company_id"].(float64); ok {
 			invitation.CompanyID = types.Int64Value(int64(companyID))

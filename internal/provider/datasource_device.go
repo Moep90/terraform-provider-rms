@@ -110,10 +110,30 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	data.Name = types.StringValue(result["name"].(string))
-	data.Serial = types.StringValue(result["serial"].(string))
-	data.DeviceSeries = types.StringValue(result["device_series"].(string))
-	data.Status = types.StringValue(result["status"].(string))
+	if name, ok := result["name"].(string); !ok {
+		resp.Diagnostics.AddError("Error parsing name", "Could not parse name from API response")
+		return
+	} else {
+		data.Name = types.StringValue(name)
+	}
+	if serial, ok := result["serial"].(string); !ok {
+		resp.Diagnostics.AddError("Error parsing serial", "Could not parse serial from API response")
+		return
+	} else {
+		data.Serial = types.StringValue(serial)
+	}
+	if deviceSeries, ok := result["device_series"].(string); !ok {
+		resp.Diagnostics.AddError("Error parsing device series", "Could not parse device_series from API response")
+		return
+	} else {
+		data.DeviceSeries = types.StringValue(deviceSeries)
+	}
+	if status, ok := result["status"].(string); !ok {
+		resp.Diagnostics.AddError("Error parsing status", "Could not parse status from API response")
+		return
+	} else {
+		data.Status = types.StringValue(status)
+	}
 
 	if mac, ok := result["mac"].(string); ok {
 		data.Mac = types.StringValue(mac)

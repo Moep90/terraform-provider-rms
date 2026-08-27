@@ -101,9 +101,19 @@ func (d *CompaniesDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	for _, c := range result {
+		id, ok := c["id"].(float64)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing company ID", "Could not parse id from API response")
+			return
+		}
+		companyName, ok := c["company_name"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing company name", "Could not parse company_name from API response")
+			return
+		}
 		company := CompanyDataModel{
-			ID:          types.Int64Value(int64(c["id"].(float64))),
-			CompanyName: types.StringValue(c["company_name"].(string)),
+			ID:          types.Int64Value(int64(id)),
+			CompanyName: types.StringValue(companyName),
 		}
 
 		if parentID, ok := c["parent_id"].(float64); ok {

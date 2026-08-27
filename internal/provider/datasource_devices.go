@@ -113,12 +113,37 @@ func (d *DevicesDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	var devices []DeviceDataModel
 	for _, dev := range result {
+		id, ok := dev["id"].(float64)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing device ID", "Could not parse id from API response")
+			return
+		}
+		name, ok := dev["name"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing device name", "Could not parse name from API response")
+			return
+		}
+		serial, ok := dev["serial"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing device serial", "Could not parse serial from API response")
+			return
+		}
+		deviceSeries, ok := dev["device_series"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing device series", "Could not parse device_series from API response")
+			return
+		}
+		status, ok := dev["status"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing device status", "Could not parse status from API response")
+			return
+		}
 		device := DeviceDataModel{
-			ID:           types.Int64Value(int64(dev["id"].(float64))),
-			Name:         types.StringValue(dev["name"].(string)),
-			Serial:       types.StringValue(dev["serial"].(string)),
-			DeviceSeries: types.StringValue(dev["device_series"].(string)),
-			Status:       types.StringValue(dev["status"].(string)),
+			ID:           types.Int64Value(int64(id)),
+			Name:         types.StringValue(name),
+			Serial:       types.StringValue(serial),
+			DeviceSeries: types.StringValue(deviceSeries),
+			Status:       types.StringValue(status),
 		}
 		if mac, ok := dev["mac"].(string); ok {
 			device.Mac = types.StringValue(mac)

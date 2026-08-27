@@ -85,9 +85,19 @@ func (d *TagsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	var tags []TagDataModel
 	for _, t := range result {
+		id, ok := t["id"].(float64)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing tag ID", "Could not parse id from API response")
+			return
+		}
+		name, ok := t["name"].(string)
+		if !ok {
+			resp.Diagnostics.AddError("Error parsing tag name", "Could not parse name from API response")
+			return
+		}
 		tag := TagDataModel{
-			ID:   types.Int64Value(int64(t["id"].(float64))),
-			Name: types.StringValue(t["name"].(string)),
+			ID:   types.Int64Value(int64(id)),
+			Name: types.StringValue(name),
 		}
 		if color, ok := t["color"].(string); ok {
 			tag.Color = types.StringValue(color)
