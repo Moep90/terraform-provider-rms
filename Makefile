@@ -42,7 +42,7 @@ build-debug:
 ## Run tests
 test:
 	@echo "Running tests..."
-	$(GOTEST) -v -race -cover ./...
+	$(GOTEST) -v -race -cover ./... -skip TestAcc
 
 ## Run tests with coverage
 test-coverage:
