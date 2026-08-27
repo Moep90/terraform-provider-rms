@@ -77,11 +77,11 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 			continue
 		}
 
-		if resp.StatusCode == 401 {
+		if resp.StatusCode == http.StatusUnauthorized {
 			return fmt.Errorf("unauthorized: invalid or expired token")
 		}
 
-		if resp.StatusCode == 03 {
+		if resp.StatusCode == http.StatusForbidden {
 			return fmt.Errorf("forbidden: insufficient permissions")
 		}
 

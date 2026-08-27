@@ -17,6 +17,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &CompanyResource{}
 var _ resource.ResourceWithImportState = &CompanyResource{}
+var _ resource.ResourceWithConfigure = &CompanyResource{}
 
 // NewCompanyResource creates a new company resource.
 func NewCompanyResource() resource.Resource {
@@ -159,7 +160,7 @@ func (r *CompanyResource) Read(ctx context.Context, req resource.ReadRequest, re
 func (r *CompanyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data CompanyResourceModel
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -207,4 +208,22 @@ func (r *CompanyResource) Delete(ctx context.Context, req resource.DeleteRequest
 // ImportState imports the resource into Terraform state.
 func (r *CompanyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// Configure sets the client for the resource.
+func (r *CompanyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*api.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Provider Data",
+			fmt.Sprintf("Expected *api.Client, got: %T", req.ProviderData),
+		)
+		return
+	}
+
+	r.client = client
 }

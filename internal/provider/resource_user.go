@@ -120,7 +120,7 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data UserResourceModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -154,4 +154,22 @@ func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 func (r *UserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// Configure sets the client for the resource.
+func (r *UserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*api.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Provider Data",
+			fmt.Sprintf("Expected *api.Client, got: %T", req.ProviderData),
+		)
+		return
+	}
+
+	r.client = client
 }

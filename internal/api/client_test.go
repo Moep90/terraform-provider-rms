@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -177,4 +178,25 @@ func TestClientForbiddenErrors(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "forbidden")
+}
+
+func TestClientForbiddenErrorSpecific(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"error": "forbidden"}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(context.Background(), "test-token")
+	client.baseURL = server.URL
+
+	err := client.Get(context.Background(), "/test", nil, nil)
+	if err == nil {
+		t.Fatal("Expected error for 403, got nil")
+	}
+
+	// The error message should contain "forbidden"
+	if !strings.Contains(err.Error(), "forbidden") {
+		t.Errorf("Expected error to contain 'forbidden', got: %s", err.Error())
+	}
 }
