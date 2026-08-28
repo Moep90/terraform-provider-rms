@@ -27,18 +27,19 @@ type DeviceResource struct {
 }
 
 type DeviceResourceModel struct {
-	ID               types.Int64  `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	DeviceSeries     types.String `tfsdk:"device_series"`
-	Serial           types.String `tfsdk:"serial"`
-	Mac              types.String `tfsdk:"mac"`
-	Imei             types.String `tfsdk:"imei"`
-	CompanyID        types.Int64  `tfsdk:"company_id"`
-	AutoCreditEnable types.Bool   `tfsdk:"auto_credit_enable"`
-	Password         types.String `tfsdk:"password"`
-	Status           types.String `tfsdk:"status"`
-	Firmware         types.String `tfsdk:"firmware"`
-	CreatedAt        types.String `tfsdk:"created_at"`
+	ID                 types.Int64  `tfsdk:"id"`
+	Name               types.String `tfsdk:"name"`
+	DeviceSeries       types.String `tfsdk:"device_series"`
+	Serial             types.String `tfsdk:"serial"`
+	Mac                types.String `tfsdk:"mac"`
+	Imei               types.String `tfsdk:"imei"`
+	CompanyID          types.Int64  `tfsdk:"company_id"`
+	AutoCreditEnable   types.Bool   `tfsdk:"auto_credit_enable"`
+	Password           types.String `tfsdk:"password"`
+	Status             types.String `tfsdk:"status"`
+	Firmware           types.String `tfsdk:"firmware"`
+	CreatedAt          types.String `tfsdk:"created_at"`
+	MonitoringEnabled  types.Bool   `tfsdk:"monitoring_enable"`
 }
 
 func (r *DeviceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -83,11 +84,8 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Description: "The IMEI (required for TRB devices).",
 			},
 			"company_id": schema.Int64Attribute{
-				Required:    true,
+				Optional:    true,
 				Description: "The company ID to assign the device to.",
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
-				},
 			},
 			"auto_credit_enable": schema.BoolAttribute{
 				Optional:    true,
@@ -116,7 +114,15 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"created_at": schema.StringAttribute{
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "The timestamp when the device was added.",
+			},
+			"monitoring_enable": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether monitoring is enabled for the device.",
 			},
 		},
 	}
@@ -146,6 +152,9 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 	if !data.Password.IsNull() {
 		createReq["password_confirmation"] = data.Password.ValueString()
+	}
+	if !data.MonitoringEnabled.IsNull() {
+		createReq["monitoring_enable"] = data.MonitoringEnabled.ValueBool()
 	}
 
 	var result map[string]interface{}
@@ -256,6 +265,10 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		data.CreatedAt = types.StringValue(createdAt)
 	}
 
+	if monitoringEnable, ok := result["monitoring_enable"].(bool); ok {
+		data.MonitoringEnabled = types.BoolValue(monitoringEnable)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -276,6 +289,12 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 	if !data.Imei.IsNull() {
 		updateReq["imei"] = data.Imei.ValueString()
+	}
+	if !data.CompanyID.IsNull() {
+		updateReq["company_id"] = data.CompanyID.ValueInt64()
+	}
+	if !data.MonitoringEnabled.IsNull() {
+		updateReq["monitoring_enable"] = data.MonitoringEnabled.ValueBool()
 	}
 
 	var result map[string]interface{}
@@ -298,6 +317,9 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 	if createdAt, ok := updatedResult["created_at"].(string); ok {
 		data.CreatedAt = types.StringValue(createdAt)
+	}
+	if monitoringEnable, ok := updatedResult["monitoring_enable"].(bool); ok {
+		data.MonitoringEnabled = types.BoolValue(monitoringEnable)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
