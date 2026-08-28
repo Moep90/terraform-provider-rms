@@ -65,6 +65,48 @@ func TestRoleResource_CRUD(t *testing.T) {
 		path := r.URL.Path
 
 		parts := strings.Split(path, "/")
+
+		// /roles/{id}/permissions - the live API serves permission IDs only
+		// here; a role read itself carries permissions_count.
+		if len(parts) >= 4 && parts[len(parts)-1] == "permissions" {
+			id, err := strconv.Atoi(parts[len(parts)-2])
+			if err != nil {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			cfg, ok := roleState[id]
+			if !ok {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			perms := []map[string]interface{}{}
+			if ids, ok := cfg["permission_id"].([]interface{}); ok {
+				for _, raw := range ids {
+					var n float64
+					switch v := raw.(type) {
+					case float64:
+						n = v
+					case int:
+						n = float64(v)
+					default:
+						continue
+					}
+					perms = append(perms, map[string]interface{}{
+						"id":   n,
+						"name": fmt.Sprintf("perm_%d", int(n)),
+					})
+				}
+			}
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": true,
+				"data":    perms,
+			}); err != nil {
+				t.Logf("error encoding response: %v", err)
+			}
+			return
+		}
+
 		if len(parts) >= 3 {
 			id, err := strconv.Atoi(parts[len(parts)-1])
 			if err != nil {

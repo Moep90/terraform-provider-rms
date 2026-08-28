@@ -7,28 +7,33 @@ subcategory: "Guides"
 
 How to look up RMS permissions and roles and use them to build `rms_role`.
 
+RMS has no global permissions endpoint. Permissions are reachable only through
+a role, at `/roles/{id}/permissions`, so `rms_permissions` takes a `role_id`.
+The built-in Administrator role (id `2`) holds every permission, which makes it
+the practical choice for discovering IDs.
+
 ## Data Sources
 
 ### rms_permissions
 
-Retrieves the available RMS permissions. Each entry carries the `id` that
-`rms_role.permission_ids` expects, plus the `name` used to select it.
-
 ```hcl
-data "rms_permissions" "all" {}
+data "rms_permissions" "all" {
+  role_id = 2
+}
 
 output "permission_names" {
   value = [for p in data.rms_permissions.all.permissions : p.name]
 }
 ```
 
-The catalogue is returned sorted by `name`. `id` is null if the API reports no
-numeric identifier for a permission, in which case that permission cannot be
-assigned to a role.
+Each permission exposes `id`, `name` (a slug such as `view_pending_device_actions`),
+`title`, `description` and `category`. The list is sorted by `name`.
 
 ### rms_roles
 
-Retrieves the roles visible to the token's company, sorted by `id`.
+Retrieves the roles visible to the token, sorted by `id`. `permission_ids` is
+populated per role from the sub-resource, which costs one extra request per
+role.
 
 ```hcl
 data "rms_roles" "all" {}
@@ -36,18 +41,19 @@ data "rms_roles" "all" {}
 output "role_titles" {
   value = [for r in data.rms_roles.all.roles : r.title]
 }
-
-output "admin_role_id" {
-  value = one([for r in data.rms_roles.all.roles : r.id if r.title == "Admin"])
-}
 ```
+
+Roles carry both a `name` slug and a human readable `title`. `company_id` is
+null on the built-in roles, which belong to no company.
 
 ## Usage Examples
 
 ### Creating a role with selected permissions
 
 ```hcl
-data "rms_permissions" "all" {}
+data "rms_permissions" "all" {
+  role_id = 2
+}
 
 locals {
   device_permissions = [
@@ -74,35 +80,13 @@ resource "rms_role" "device_manager" {
 Selecting by name rather than by hardcoded id keeps the config readable and
 survives id changes between tenants.
 
-### Reading an existing role
-
-```hcl
-data "rms_roles" "existing" {}
-
-locals {
-  admin_role = one([for r in data.rms_roles.existing.roles : r if r.title == "Admin"])
-}
-
-output "admin_role" {
-  value = {
-    id             = local.admin_role.id
-    title          = local.admin_role.title
-    description    = local.admin_role.description
-    permission_ids = local.admin_role.permission_ids
-  }
-}
-```
-
-`one()` returns null when no role matches, instead of failing on an index into
-an empty list.
-
 ### Cloning a role
 
 ```hcl
 data "rms_roles" "templates" {}
 
 locals {
-  viewer_role = one([for r in data.rms_roles.templates.roles : r if r.title == "Viewer"])
+  viewer_role = one([for r in data.rms_roles.templates.roles : r if r.title == "Advanced guest"])
 }
 
 resource "rms_role" "readonly_admin" {
@@ -112,3 +96,6 @@ resource "rms_role" "readonly_admin" {
   permission_ids = local.viewer_role.permission_ids
 }
 ```
+
+`one()` returns null when no role matches, instead of failing on an index into
+an empty list.

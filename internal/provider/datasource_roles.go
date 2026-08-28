@@ -28,6 +28,7 @@ type RolesDataSourceModel struct {
 
 type RoleDataItem struct {
 	ID            types.Int64  `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
 	Title         types.String `tfsdk:"title"`
 	Description   types.String `tfsdk:"description"`
 	CompanyID     types.Int64  `tfsdk:"company_id"`
@@ -55,6 +56,10 @@ func (d *RolesDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 							Computed:    true,
 							Description: "Role ID.",
 						},
+						"name": schema.StringAttribute{
+							Computed:    true,
+							Description: "Role slug, for example readonly_admin.",
+						},
 						"title": schema.StringAttribute{
 							Computed:    true,
 							Description: "Role title.",
@@ -70,7 +75,7 @@ func (d *RolesDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 						"permission_ids": schema.SetAttribute{
 							ElementType: types.Int64Type,
 							Computed:    true,
-							Description: "List of permission IDs assigned to this role.",
+							Description: "Permission IDs assigned to this role, read from /roles/{id}/permissions.",
 						},
 					},
 				},
@@ -137,9 +142,16 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			return
 		}
 
-		permissionIDs, err := parseRolePermissionIDs(r["permission_id"])
+		name := ""
+		if v, ok := r["name"].(string); ok {
+			name = v
+		}
+
+		// The roles list carries only permissions_count, so the IDs have to be
+		// read per role from the sub-resource.
+		permissionIDs, err := rolePermissionIDs(ctx, d.client, int64(id))
 		if err != nil {
-			resp.Diagnostics.AddError("Error parsing role permissions", fmt.Sprintf("Role %d: %s", int64(id), err))
+			resp.Diagnostics.AddError("Error reading role permissions", fmt.Sprintf("Role %d: %s", int64(id), err))
 			return
 		}
 
@@ -151,6 +163,7 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 		roles = append(roles, RoleDataItem{
 			ID:            types.Int64Value(int64(id)),
+			Name:          types.StringValue(name),
 			Title:         types.StringValue(title),
 			Description:   types.StringValue(description),
 			CompanyID:     companyID,

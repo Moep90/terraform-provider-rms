@@ -10,17 +10,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func permissionsServer(t *testing.T, payload interface{}) *httptest.Server {
+// permissionsServer mirrors the live RMS shape: every response is wrapped in
+// {"success":true,"data":[...]} and permissions are reachable only through a
+// role at /roles/{id}/permissions. There is no global /permissions endpoint.
+func permissionsServer(t *testing.T, roleID int, permissions []map[string]interface{}) *httptest.Server {
 	t.Helper()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/permissions", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(fmt.Sprintf("/roles/%d/permissions", roleID), func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(payload); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"data":    permissions,
+		}); err != nil {
 			t.Logf("error encoding response: %v", err)
 		}
 	})
@@ -31,59 +37,40 @@ func permissionsServer(t *testing.T, payload interface{}) *httptest.Server {
 }
 
 func TestPermissionsDataSource(t *testing.T) {
-	// Returned unsorted, so the sort into name order is observable.
-	server := permissionsServer(t, []map[string]interface{}{
-		{"id": 5, "name": "view_devices", "description": "View devices"},
-		{"id": 2, "name": "create_devices", "description": "Create devices"},
-		{"id": 9, "name": "delete_devices", "description": "Delete devices"},
+	// Returned unsorted so the sort into name order is observable.
+	server := permissionsServer(t, 2, []map[string]interface{}{
+		{"id": 28, "name": "view_pending_device_actions", "title": "View pending device actions", "description": "", "category": "Device actions"},
+		{"id": 5, "name": "create_devices", "title": "Create devices", "description": "Add devices", "category": "Devices"},
 	})
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
-			Config: testPermissionsDataSourceConfig(server.URL),
+			Config: testPermissionsDataSourceConfig(server.URL, 2),
 			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "id", "permissions-data-source"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.#", "3"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "id", "role-2-permissions"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "role_id", "2"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.#", "2"),
 				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.name", "create_devices"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.id", "2"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.description", "Create devices"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.1.name", "delete_devices"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.1.id", "9"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.2.name", "view_devices"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.2.id", "5"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.id", "5"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.title", "Create devices"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.category", "Devices"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.1.name", "view_pending_device_actions"),
+				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.1.id", "28"),
 			),
 		}},
 	})
 }
 
-// A permission without an id must read as null rather than a fabricated 0.
-func TestPermissionsDataSourceMissingID(t *testing.T) {
-	server := permissionsServer(t, []map[string]interface{}{
-		{"name": "view_devices", "description": "View devices"},
-	})
-
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		Steps: []resource.TestStep{{
-			Config: testPermissionsDataSourceConfig(server.URL),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.#", "1"),
-				resource.TestCheckNoResourceAttr("data.rms_permissions.test", "permissions.0.id"),
-			),
-		}},
-	})
-}
-
-// An empty catalogue must yield an empty list, not a null one, so that
+// A role with no permissions must yield an empty list, not a null one, so
 // length() and for-expressions over it keep working.
 func TestPermissionsDataSourceEmpty(t *testing.T) {
-	server := permissionsServer(t, []map[string]interface{}{})
+	server := permissionsServer(t, 2, []map[string]interface{}{})
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
-			Config: testPermissionsDataSourceConfig(server.URL) + `
+			Config: testPermissionsDataSourceConfig(server.URL, 2) + `
 output "count" {
   value = length(data.rms_permissions.test.permissions)
 }
@@ -96,36 +83,15 @@ output "count" {
 	})
 }
 
-// The RMS response envelope must be unwrapped transparently.
-func TestPermissionsDataSourceEnvelope(t *testing.T) {
-	server := permissionsServer(t, map[string]interface{}{
-		"success": true,
-		"data": []map[string]interface{}{
-			{"id": 1, "name": "view_devices", "description": "View devices"},
-		},
-		"meta": map[string]interface{}{"total": 1},
-	})
-
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		Steps: []resource.TestStep{{
-			Config: testPermissionsDataSourceConfig(server.URL),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.#", "1"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.name", "view_devices"),
-				resource.TestCheckResourceAttr("data.rms_permissions.test", "permissions.0.id", "1"),
-			),
-		}},
-	})
-}
-
-func testPermissionsDataSourceConfig(baseURL string) string {
+func testPermissionsDataSourceConfig(baseURL string, roleID int) string {
 	return fmt.Sprintf(`
 provider "rms" {
   token    = "test-token"
   base_url = "%s"
 }
 
-data "rms_permissions" "test" {}
-`, baseURL)
+data "rms_permissions" "test" {
+  role_id = %d
+}
+`, baseURL, roleID)
 }

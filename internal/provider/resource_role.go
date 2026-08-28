@@ -150,19 +150,19 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		state.CompanyID = companyID
 	}
 
-	if raw, present := result["permission_id"]; present {
-		permIDs, err := parseRolePermissionIDs(raw)
-		if err != nil {
-			resp.Diagnostics.AddError("Error parsing permissions", fmt.Sprintf("Could not read role %d: %s", state.ID.ValueInt64(), err))
-			return
-		}
-		permSet, diag := types.SetValueFrom(ctx, types.Int64Type, permIDs)
-		resp.Diagnostics.Append(diag...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.PermissionIDs = permSet
+	// A role read returns permissions_count, not the IDs, so they come from
+	// the sub-resource.
+	permIDs, err := rolePermissionIDs(ctx, r.client, state.ID.ValueInt64())
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading permissions", fmt.Sprintf("Could not read permissions for role %d: %s", state.ID.ValueInt64(), err))
+		return
 	}
+	permSet, diag := types.SetValueFrom(ctx, types.Int64Type, permIDs)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.PermissionIDs = permSet
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -266,29 +266,4 @@ func parseRoleCompanyID(raw interface{}) (types.Int64, error) {
 	default:
 		return types.Int64Null(), fmt.Errorf("company_id is %T (%v), want a number or an array of numbers", raw, raw)
 	}
-}
-
-// parseRolePermissionIDs reads a role's permission_id list. Elements that are
-// not numeric are reported rather than skipped: dropping them would hand back
-// a shorter permission set that still looks valid.
-func parseRolePermissionIDs(raw interface{}) ([]int64, error) {
-	ids := []int64{}
-	if raw == nil {
-		return ids, nil
-	}
-
-	elems, ok := raw.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("permission_id is %T (%v), want an array of numbers", raw, raw)
-	}
-
-	for i, elem := range elems {
-		f, ok := elem.(float64)
-		if !ok {
-			return nil, fmt.Errorf("permission_id[%d] is %T (%v), want a number", i, elem, elem)
-		}
-		ids = append(ids, int64(f))
-	}
-
-	return ids, nil
 }

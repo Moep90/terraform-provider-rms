@@ -36,5 +36,6 @@ Read-Only:
 - `company_id` (Number) Company ID.
 - `description` (String) Role description.
 - `id` (Number) Role ID.
-- `permission_ids` (Set of Number) List of permission IDs assigned to this role.
+- `name` (String) Role slug, for example readonly_admin.
+- `permission_ids` (Set of Number) Permission IDs assigned to this role, read from /roles/{id}/permissions.
 - `title` (String) Role title.
