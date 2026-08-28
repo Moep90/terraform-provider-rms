@@ -96,8 +96,8 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	createReq := map[string]interface{}{
-		"title":        plan.Title.ValueString(),
-		"company_id":   []int{int(plan.CompanyID.ValueInt64())},
+		"title":         plan.Title.ValueString(),
+		"company_id":    []int{int(plan.CompanyID.ValueInt64())},
 		"permission_id": apiPermIDs,
 	}
 

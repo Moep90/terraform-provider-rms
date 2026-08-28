@@ -25,21 +25,21 @@ type AlertConfigurationResource struct {
 }
 
 type AlertConfigurationResourceModel struct {
-	ID                types.Int64 `tfsdk:"id"`
-	DeviceID          types.Int64 `tfsdk:"device_id"`
-	AlertTypeID       types.Int64 `tfsdk:"alert_type_id"`
-	AlertSubtypeID    types.Int64 `tfsdk:"alert_subtype_id"`
-	Action            types.Int64 `tfsdk:"action"`
-	Subject           types.String `tfsdk:"subject"`
-	Message           types.String `tfsdk:"message"`
-	Email             types.String `tfsdk:"email"`
-	SMTPConfigID      types.Int64 `tfsdk:"smtp_config_id"`
-	DeliveryRetry     types.Bool  `tfsdk:"delivery_retry"`
-	RetryInterval     types.Int64 `tfsdk:"retry_interval"`
-	RetryCount        types.Int64 `tfsdk:"retry_count"`
-	RedundancyInterval types.Int64 `tfsdk:"redundancy_interval"`
-	DataLimit         types.Int64 `tfsdk:"data_limit"`
-	SIM               types.Int64 `tfsdk:"sim"`
+	ID                 types.Int64  `tfsdk:"id"`
+	DeviceID           types.Int64  `tfsdk:"device_id"`
+	AlertTypeID        types.Int64  `tfsdk:"alert_type_id"`
+	AlertSubtypeID     types.Int64  `tfsdk:"alert_subtype_id"`
+	Action             types.Int64  `tfsdk:"action"`
+	Subject            types.String `tfsdk:"subject"`
+	Message            types.String `tfsdk:"message"`
+	Email              types.String `tfsdk:"email"`
+	SMTPConfigID       types.Int64  `tfsdk:"smtp_config_id"`
+	DeliveryRetry      types.Bool   `tfsdk:"delivery_retry"`
+	RetryInterval      types.Int64  `tfsdk:"retry_interval"`
+	RetryCount         types.Int64  `tfsdk:"retry_count"`
+	RedundancyInterval types.Int64  `tfsdk:"redundancy_interval"`
+	DataLimit          types.Int64  `tfsdk:"data_limit"`
+	SIM                types.Int64  `tfsdk:"sim"`
 }
 
 func (r *AlertConfigurationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -132,8 +132,8 @@ func (r *AlertConfigurationResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	alertData := map[string]interface{}{
-		"device_id":       plan.DeviceID.ValueInt64(),
-		"alert_type_id":   plan.AlertTypeID.ValueInt64(),
+		"device_id":     plan.DeviceID.ValueInt64(),
+		"alert_type_id": plan.AlertTypeID.ValueInt64(),
 	}
 
 	if !plan.AlertSubtypeID.IsNull() {

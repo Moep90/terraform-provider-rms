@@ -13,10 +13,10 @@ import (
 func TestAccTask(t *testing.T) {
 	var mu sync.Mutex
 	store := map[string]interface{}{
-		"status":      "pending",
-		"created_at":  "2024-01-01T00:00:00Z",
-		"updated_at":  "2024-01-01T00:00:00Z",
-		"task_type":   "reboot",
+		"status":     "pending",
+		"created_at": "2024-01-01T00:00:00Z",
+		"updated_at": "2024-01-01T00:00:00Z",
+		"task_type":  "reboot",
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

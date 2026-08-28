@@ -38,9 +38,11 @@ func TestAccTaskGroup_E2E(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) { return s.RootModule().Resources[resourceName].Primary.ID, nil },
+				ResourceName: resourceName,
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					return s.RootModule().Resources[resourceName].Primary.ID, nil
+				},
 				ImportStateVerify: true,
 			},
 		},

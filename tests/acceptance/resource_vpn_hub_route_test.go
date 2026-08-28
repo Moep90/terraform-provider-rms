@@ -24,7 +24,7 @@ func TestVPNHubRouteResource_CRUD(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				t.Logf("error decoding request: %v", err)
 			}
-			
+
 			ipAddress := ""
 			if ip, ok := req["ip_address"].(string); ok {
 				ipAddress = ip
@@ -33,20 +33,20 @@ func TestVPNHubRouteResource_CRUD(t *testing.T) {
 			if nm, ok := req["netmask"].(string); ok {
 				netmask = nm
 			}
-			
+
 			vpnHubID, _ := req["vpn_hub_id"].(float64)
 			vpnHubUserID, _ := req["vpn_hub_user_id"].(float64)
 			id := fmt.Sprintf("%d:%d:%s", int(vpnHubID), int(vpnHubUserID), ipAddress)
-			
+
 			routeState[id] = map[string]interface{}{
-				"id":             id,
-				"vpn_hub_id":     vpnHubID,
+				"id":              id,
+				"vpn_hub_id":      vpnHubID,
 				"vpn_hub_user_id": vpnHubUserID,
-				"ip_address":     ipAddress,
-				"netmask":        netmask,
-				"description":    req["description"],
+				"ip_address":      ipAddress,
+				"netmask":         netmask,
+				"description":     req["description"],
 			}
-			
+
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(map[string]interface{}{"id": id}); err != nil {
 				t.Logf("error encoding response: %v", err)
@@ -59,18 +59,18 @@ func TestVPNHubRouteResource_CRUD(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				t.Logf("error decoding request: %v", err)
 			}
-			
+
 			ipAddress := ""
 			if ip, ok := req["ip_address"].(string); ok {
 				ipAddress = ip
 			}
-			
+
 			vpnHubID, _ := req["vpn_hub_id"].(float64)
 			vpnHubUserID, _ := req["vpn_hub_user_id"].(float64)
-			
+
 			key := fmt.Sprintf("%d:%d:%s", int(vpnHubID), int(vpnHubUserID), ipAddress)
 			delete(routeState, key)
-			
+
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -80,11 +80,11 @@ func TestVPNHubRouteResource_CRUD(t *testing.T) {
 
 	mux.HandleFunc("/vpn/hubs/routes/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		
+
 		parts := strings.Split(path, "/")
 		if len(parts) >= 4 {
 			id := parts[len(parts)-1]
-			
+
 			if r.Method == http.MethodGet {
 				if cfg, ok := routeState[id]; ok {
 					w.Header().Set("Content-Type", "application/json")

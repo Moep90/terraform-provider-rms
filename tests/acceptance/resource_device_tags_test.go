@@ -21,16 +21,16 @@ func TestDeviceTagsResource_Assign(t *testing.T) {
 		if r.Method == http.MethodPost {
 			w.Header().Set("Content-Type", "application/json")
 			resp := map[string]interface{}{
-				"id":                 123,
-				"name":               "Test Device",
-				"device_series":      "rut",
-				"serial":             "SN123",
-				"company_id":         float64(1),
-				"mac":                "00:11:22:33:44:55",
-				"status":             "online",
-				"firmware":           "v1.0",
-				"created_at":         "2024-01-01T00:00:00Z",
-				"monitoring_enable":  false,
+				"id":                123,
+				"name":              "Test Device",
+				"device_series":     "rut",
+				"serial":            "SN123",
+				"company_id":        float64(1),
+				"mac":               "00:11:22:33:44:55",
+				"status":            "online",
+				"firmware":          "v1.0",
+				"created_at":        "2024-01-01T00:00:00Z",
+				"monitoring_enable": false,
 			}
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				t.Logf("error encoding response: %v", err)
@@ -52,12 +52,12 @@ func TestDeviceTagsResource_Assign(t *testing.T) {
 			if r.Method == http.MethodGet {
 				w.Header().Set("Content-Type", "application/json")
 				resp := map[string]interface{}{
-					"id":              deviceID,
-					"name":            "Test Device",
-					"device_series":   "rut",
-					"status":          "online",
-					"firmware":        "v1.0",
-					"created_at":      "2024-01-01T00:00:00Z",
+					"id":                deviceID,
+					"name":              "Test Device",
+					"device_series":     "rut",
+					"status":            "online",
+					"firmware":          "v1.0",
+					"created_at":        "2024-01-01T00:00:00Z",
 					"monitoring_enable": false,
 				}
 				if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -73,12 +73,12 @@ func TestDeviceTagsResource_Assign(t *testing.T) {
 				}
 				w.Header().Set("Content-Type", "application/json")
 				resp := map[string]interface{}{
-					"id":              deviceID,
-					"name":            "Test Device",
-					"device_series":   "rut",
-					"status":          "online",
-					"firmware":        "v1.0",
-					"created_at":      "2024-01-01T00:00:00Z",
+					"id":                deviceID,
+					"name":              "Test Device",
+					"device_series":     "rut",
+					"status":            "online",
+					"firmware":          "v1.0",
+					"created_at":        "2024-01-01T00:00:00Z",
 					"monitoring_enable": false,
 				}
 				if err := json.NewEncoder(w).Encode(resp); err != nil {

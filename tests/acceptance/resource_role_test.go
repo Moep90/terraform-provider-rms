@@ -26,10 +26,10 @@ func TestRoleResource_CRUD(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				t.Logf("error decoding request: %v", err)
 			}
-			
+
 			currentID := nextID
 			nextID++
-			
+
 			title := ""
 			if t, ok := req["title"].(string); ok {
 				title = t
@@ -42,7 +42,7 @@ func TestRoleResource_CRUD(t *testing.T) {
 			if p, ok := req["permission_id"].([]interface{}); ok {
 				permIDs = p
 			}
-			
+
 			roleState[currentID] = map[string]interface{}{
 				"id":            float64(currentID),
 				"title":         title,
@@ -50,7 +50,7 @@ func TestRoleResource_CRUD(t *testing.T) {
 				"company_id":    float64(1),
 				"permission_id": permIDs,
 			}
-			
+
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(map[string]interface{}{"id": float64(currentID)}); err != nil {
 				t.Logf("error encoding response: %v", err)
@@ -63,7 +63,7 @@ func TestRoleResource_CRUD(t *testing.T) {
 
 	mux.HandleFunc("/roles/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		
+
 		parts := strings.Split(path, "/")
 		if len(parts) >= 3 {
 			id, err := strconv.Atoi(parts[len(parts)-1])

@@ -27,19 +27,19 @@ type DeviceResource struct {
 }
 
 type DeviceResourceModel struct {
-	ID                 types.Int64  `tfsdk:"id"`
-	Name               types.String `tfsdk:"name"`
-	DeviceSeries       types.String `tfsdk:"device_series"`
-	Serial             types.String `tfsdk:"serial"`
-	Mac                types.String `tfsdk:"mac"`
-	Imei               types.String `tfsdk:"imei"`
-	CompanyID          types.Int64  `tfsdk:"company_id"`
-	AutoCreditEnable   types.Bool   `tfsdk:"auto_credit_enable"`
-	Password           types.String `tfsdk:"password"`
-	Status             types.String `tfsdk:"status"`
-	Firmware           types.String `tfsdk:"firmware"`
-	CreatedAt          types.String `tfsdk:"created_at"`
-	MonitoringEnabled  types.Bool   `tfsdk:"monitoring_enable"`
+	ID                types.Int64  `tfsdk:"id"`
+	Name              types.String `tfsdk:"name"`
+	DeviceSeries      types.String `tfsdk:"device_series"`
+	Serial            types.String `tfsdk:"serial"`
+	Mac               types.String `tfsdk:"mac"`
+	Imei              types.String `tfsdk:"imei"`
+	CompanyID         types.Int64  `tfsdk:"company_id"`
+	AutoCreditEnable  types.Bool   `tfsdk:"auto_credit_enable"`
+	Password          types.String `tfsdk:"password"`
+	Status            types.String `tfsdk:"status"`
+	Firmware          types.String `tfsdk:"firmware"`
+	CreatedAt         types.String `tfsdk:"created_at"`
+	MonitoringEnabled types.Bool   `tfsdk:"monitoring_enable"`
 }
 
 func (r *DeviceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -113,7 +113,7 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Description: "The device firmware version.",
 			},
 			"created_at": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

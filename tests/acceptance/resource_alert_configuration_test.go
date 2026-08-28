@@ -26,21 +26,21 @@ func TestAlertConfigurationResource_CRUD(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				t.Logf("error decoding request: %v", err)
 			}
-			
+
 			currentID := nextID
 			nextID++
-			
+
 			if dataArr, ok := req["data"].([]interface{}); ok && len(dataArr) > 0 {
 				if data, ok := dataArr[0].(map[string]interface{}); ok {
 					alertState[currentID] = map[string]interface{}{
-						"id":                float64(currentID),
-						"device_id":         data["device_id"],
-						"alert_type_id":     data["alert_type_id"],
-						"alert_subtype_id":  data["alert_subtype_id"],
-						"action":            data["action"],
-						"subject":           data["subject"],
-						"message":           data["message"],
-						"email":             data["email"],
+						"id":               float64(currentID),
+						"device_id":        data["device_id"],
+						"alert_type_id":    data["alert_type_id"],
+						"alert_subtype_id": data["alert_subtype_id"],
+						"action":           data["action"],
+						"subject":          data["subject"],
+						"message":          data["message"],
+						"email":            data["email"],
 					}
 				}
 			}
@@ -56,7 +56,7 @@ func TestAlertConfigurationResource_CRUD(t *testing.T) {
 
 	mux.HandleFunc("/alerts-configurations/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		
+
 		parts := strings.Split(path, "/")
 		if len(parts) >= 3 {
 			id, err := strconv.Atoi(parts[len(parts)-1])

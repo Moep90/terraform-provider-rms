@@ -27,12 +27,12 @@ type VPNHubRouteResource struct {
 }
 
 type VPNHubRouteResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	VPNHubID      types.Int64  `tfsdk:"vpn_hub_id"`
-	IPAddress     types.String `tfsdk:"ip_address"`
-	Netmask       types.String `tfsdk:"netmask"`
-	VPNHubUserID  types.Int64  `tfsdk:"vpn_hub_user_id"`
-	Description   types.String `tfsdk:"description"`
+	ID           types.String `tfsdk:"id"`
+	VPNHubID     types.Int64  `tfsdk:"vpn_hub_id"`
+	IPAddress    types.String `tfsdk:"ip_address"`
+	Netmask      types.String `tfsdk:"netmask"`
+	VPNHubUserID types.Int64  `tfsdk:"vpn_hub_user_id"`
+	Description  types.String `tfsdk:"description"`
 }
 
 func (r *VPNHubRouteResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -95,10 +95,10 @@ func (r *VPNHubRouteResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	createReq := map[string]interface{}{
-		"vpn_hub_id":       plan.VPNHubID.ValueInt64(),
-		"vpn_hub_user_id":  plan.VPNHubUserID.ValueInt64(),
-		"ip_address":       plan.IPAddress.ValueString(),
-		"netmask":          plan.Netmask.ValueString(),
+		"vpn_hub_id":      plan.VPNHubID.ValueInt64(),
+		"vpn_hub_user_id": plan.VPNHubUserID.ValueInt64(),
+		"ip_address":      plan.IPAddress.ValueString(),
+		"netmask":         plan.Netmask.ValueString(),
 	}
 
 	if !plan.Description.IsNull() {

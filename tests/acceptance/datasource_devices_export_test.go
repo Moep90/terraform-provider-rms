@@ -19,10 +19,10 @@ func TestDevicesExportDataSource_Read(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("unexpected method: %s", r.Method)
 		}
-		
+
 		w.Header().Set("Content-Type", "text/csv")
 		w.WriteHeader(http.StatusOK)
-		
+
 		writer := csv.NewWriter(w)
 		if err := writer.Write([]string{"id", "name", "serial", "device_series", "status"}); err != nil {
 			t.Logf("error writing CSV header: %v", err)
