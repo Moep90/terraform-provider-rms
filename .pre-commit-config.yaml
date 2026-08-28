@@ -38,7 +38,7 @@ repos:
 
   # Go linting
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.63.4
+    rev: v1.65.0
     hooks:
       - id: golangci-lint
         args: [--timeout=5m]
@@ -64,7 +64,7 @@ repos:
     rev: v2.20.0
     hooks:
       - id: gosec
-        args: [-exclude=G104,G107,G204]
+        args: [-exclude=G107,G204]
 
   # Documentation
   - repo: https://github.com/gitleaks/gitleaks

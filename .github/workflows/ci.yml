@@ -119,7 +119,7 @@ jobs:
       - name: Run Gosec Security Scanner
         uses: securego/gosec@v2.19.0
         with:
-          args: -exclude=G104,G107,G204 ./...
+          args: -exclude=G107,G204 ./...
 
   code-quality:
     name: Code Quality
