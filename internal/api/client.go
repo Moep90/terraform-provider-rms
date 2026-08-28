@@ -91,6 +91,7 @@ func (c *Client) setRequestHeaders(req *http.Request) {
 func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error {
 	c.setRequestHeaders(req)
 
+	var lastErr error
 	for attempt := 0; attempt < c.maxRetries; attempt++ {
 		if attempt > 0 {
 			tflog.Warn(ctx, "Retrying request", map[string]interface{}{
@@ -108,11 +109,13 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
+			lastErr = err
 			continue
 		}
 
 		if resp.StatusCode >= 500 {
 			_ = resp.Body.Close()
+			lastErr = fmt.Errorf("status %d", resp.StatusCode)
 			continue
 		}
 
@@ -137,7 +140,7 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 		return err
 	}
 
-	return fmt.Errorf("request failed after %d attempts", c.maxRetries)
+	return fmt.Errorf("request failed after %d attempts: %w", c.maxRetries, lastErr)
 }
 
 // handleErrorResponse decodes and returns error details from response

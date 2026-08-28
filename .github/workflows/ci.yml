@@ -143,3 +143,21 @@ jobs:
         run: |
           go fmt ./...
           git diff --exit-code
+
+  acceptance-test:
+    name: Acceptance Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: Go Mod Download
+        run: go mod download
+
+      - name: Run Acceptance Tests
+        run: TF_ACC=1 go test -v -race ./tests/acceptance/

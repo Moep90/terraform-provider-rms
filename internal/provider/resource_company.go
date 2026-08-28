@@ -155,24 +155,9 @@ func (r *CompanyResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	id, ok := result["id"].(float64)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error parsing company ID",
-			"Could not parse company ID from API response",
-		)
-		return
+	if companyName, ok := result["company_name"].(string); ok {
+		data.CompanyName = types.StringValue(companyName)
 	}
-	data.ID = types.Int64Value(int64(id))
-	companyName, ok := result["company_name"].(string)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error parsing company name",
-			"Could not parse company name from API response",
-		)
-		return
-	}
-	data.CompanyName = types.StringValue(companyName)
 
 	if parentID, ok := result["parent_id"].(float64); ok {
 		data.ParentID = types.Int64Value(int64(parentID))

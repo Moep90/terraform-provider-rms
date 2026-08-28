@@ -101,14 +101,14 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Description: "The device password for initial validation.",
 			},
 			"status": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Description: "The device status: online, offline, not_activated.",
 			},
 			"firmware": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

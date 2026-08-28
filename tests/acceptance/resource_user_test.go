@@ -4,17 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccUser(t *testing.T) {
+	var mu sync.Mutex
+	store := map[string]interface{}{}
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+
 		switch {
 		case r.Method == http.MethodPost && r.URL.Path == "/users":
 			var req map[string]interface{}
 			_ = json.NewDecoder(r.Body).Decode(&req)
+			store["username"] = req["username"]
+			store["email"] = req["email"]
+			store["role"] = req["role"]
+			store["company_id"] = req["company_id"]
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":         1,
@@ -28,22 +39,25 @@ func TestAccUser(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":         1,
-				"username":   "testuser",
-				"email":      "test@example.com",
-				"role":       "admin",
-				"company_id": float64(1),
+				"username":   store["username"],
+				"email":      store["email"],
+				"role":       store["role"],
+				"company_id": store["company_id"],
 			})
 
 		case r.Method == http.MethodPut && r.URL.Path == "/users/1":
 			var req map[string]interface{}
 			_ = json.NewDecoder(r.Body).Decode(&req)
+			store["username"] = req["username"]
+			store["email"] = req["email"]
+			store["role"] = req["role"]
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":         1,
-				"username":   "testuser",
-				"email":      req["email"],
-				"role":       req["role"],
-				"company_id": float64(1),
+				"username":   store["username"],
+				"email":      store["email"],
+				"role":       store["role"],
+				"company_id": store["company_id"],
 			})
 
 		case r.Method == http.MethodDelete && r.URL.Path == "/users/1":
@@ -58,6 +72,9 @@ func TestAccUser(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccUserConfig(server.URL, "user-a", "a@example.com", "viewer"),

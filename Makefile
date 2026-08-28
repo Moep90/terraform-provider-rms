@@ -58,6 +58,11 @@ test-unit:
 	@echo "Running unit tests..."
 	$(GOTEST) -v ./$(INTERNAL_DIR)/api/...
 
+## Run acceptance tests
+testacc:
+	@echo "Running acceptance tests..."
+	TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
+
 ## Run linting
 lint:
 	@echo "Running golangci-lint..."

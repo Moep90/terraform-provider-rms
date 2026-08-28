@@ -151,6 +151,10 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		data.Color = types.StringValue(color)
 	}
 
+	if companyID, ok := result["company_id"].(float64); ok {
+		data.CompanyID = types.Int64Value(int64(companyID))
+	}
+
 	if deviceCount, ok := result["device_count"].(float64); ok {
 		data.DeviceCount = types.Int64Value(int64(deviceCount))
 	}

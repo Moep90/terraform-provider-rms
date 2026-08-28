@@ -114,7 +114,8 @@ func TestClientPut(t *testing.T) {
 	err := client.Put(context.Background(), "/test", nil, &result)
 
 	require.NoError(t, err)
-	updated, ok := result["updated"].(bool); assert.True(t, ok && updated)
+	updated, ok := result["updated"].(bool)
+	assert.True(t, ok && updated)
 }
 
 func TestClientDelete(t *testing.T) {
@@ -139,7 +140,8 @@ func TestClientDelete(t *testing.T) {
 	err := client.Delete(context.Background(), "/test", &result)
 
 	require.NoError(t, err)
-	deleted, ok := result["deleted"].(bool); assert.True(t, ok && deleted)
+	deleted, ok := result["deleted"].(bool)
+	assert.True(t, ok && deleted)
 }
 
 func TestClientAuthenticationErrors(t *testing.T) {
@@ -314,7 +316,7 @@ func TestClientRetryRespectsContextCancellation(t *testing.T) {
 
 	// Wait for first request to complete (should be fast since server responds immediately)
 	time.Sleep(50 * time.Millisecond)
-	
+
 	// Cancel context to prevent retries
 	cancel()
 
