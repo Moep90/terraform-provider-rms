@@ -1,0 +1,33 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936ba144
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ec9486f6850de7254
+        with:
+          go-version: stable
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-provider-teltonika-rms
+          path: dist/

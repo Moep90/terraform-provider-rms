@@ -42,7 +42,7 @@ signs:
     args:
       - "--batch"
       - "-u"
-      - "{{ .GPGKeyID }}"
+      - "{{ .Env.GPG_FINGERPRINT }}"
       - "--output"
       - "${signature}"
       - "--detach-sign"
