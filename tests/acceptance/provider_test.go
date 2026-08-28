@@ -19,13 +19,19 @@ var ProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, erro
 	"teltonika-rms": providerserver.NewProtocol6WithError(provider.New("test")()),
 }
 
+// isRealAPITest returns true if we should test against the real API
+func isRealAPITest() bool {
+	return os.Getenv("RMS_ADMIN_TOKEN") != "" && os.Getenv("RUN_E2E_TESTS") == "true"
+}
+
 // testAccPreCheck validates that required environment variables are set
-// For mocked acceptance tests, this is optional and will skip only if explicitly required
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("TELTONIKA_RMS_TOKEN"); v == "" {
-		// Skip only if TELTONIKA_RMS_FORCE_TEST is not set
-		if os.Getenv("TELTONIKA_RMS_FORCE_TEST") == "" {
-			t.Skip("TELTONIKA_RMS_TOKEN must be set for acceptance tests (or set TELTONIKA_RMS_FORCE_TEST=1 to use mocks)")
+	if !isRealAPITest() {
+		if v := os.Getenv("TELTONIKA_RMS_TOKEN"); v == "" {
+			// Skip only if TELTONIKA_RMS_FORCE_TEST is not set
+			if os.Getenv("TELTONIKA_RMS_FORCE_TEST") == "" {
+				t.Skip("TELTONIKA_RMS_TOKEN must be set for acceptance tests (or set TELTONIKA_RMS_FORCE_TEST=1 to use mocks)")
+			}
 		}
 	}
 }

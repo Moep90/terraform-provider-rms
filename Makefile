@@ -58,10 +58,15 @@ test-unit:
 	@echo "Running unit tests..."
 	$(GOTEST) -v ./$(INTERNAL_DIR)/api/...
 
-## Run acceptance tests
+## Run acceptance tests (mocked)
 testacc:
 	@echo "Running acceptance tests..."
 	TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
+
+## Run E2E acceptance tests against real API
+testacc-e2e:
+	@echo "Running E2E acceptance tests against real API..."
+	RUN_E2E_TESTS=true TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
 
 ## Run linting
 lint:
