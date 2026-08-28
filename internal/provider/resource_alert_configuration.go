@@ -220,7 +220,10 @@ func (r *AlertConfigurationResource) Read(ctx context.Context, req resource.Read
 			}
 			if action, ok := alertData["action"].(string); ok {
 				var actionInt int64
-				fmt.Sscanf(action, "%d", &actionInt) //nolint:errcheck // parsing string to int
+				if _, err := fmt.Sscanf(action, "%d", &actionInt); err != nil {
+					resp.Diagnostics.AddError("Error parsing alert action", fmt.Sprintf("Could not parse action %q as a number: %s", action, err))
+					return
+				}
 				state.Action = types.Int64Value(actionInt)
 			}
 			if subject, ok := alertData["subject"].(string); ok {
@@ -252,7 +255,10 @@ func (r *AlertConfigurationResource) Read(ctx context.Context, req resource.Read
 			}
 			if sim, ok := alertData["sim"].(string); ok {
 				var simInt int64
-				fmt.Sscanf(sim, "%d", &simInt) //nolint:errcheck // parsing string to int
+				if _, err := fmt.Sscanf(sim, "%d", &simInt); err != nil {
+					resp.Diagnostics.AddError("Error parsing alert sim", fmt.Sprintf("Could not parse sim %q as a number: %s", sim, err))
+					return
+				}
 				state.SIM = types.Int64Value(simInt)
 			}
 		}

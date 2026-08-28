@@ -201,7 +201,10 @@ func (r *VPNHubRouteResource) Delete(ctx context.Context, req resource.DeleteReq
 		"netmask":         state.Netmask.ValueString(),
 	}
 
-	r.client.Delete(ctx, "/vpn/hubs/routes", deleteReq) //nolint:errcheck // delete is best-effort
+	if err := r.client.Delete(ctx, "/vpn/hubs/routes", deleteReq); err != nil {
+		resp.Diagnostics.AddError("Error deleting VPN hub route", fmt.Sprintf("Could not delete VPN hub route: %s", err))
+		return
+	}
 }
 
 func (r *VPNHubRouteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

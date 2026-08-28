@@ -11,6 +11,3 @@ linters:
     - bodyclose
     - noctx
     - errorlint
-
-issues:
-  exclude-use-default: false

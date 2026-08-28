@@ -237,7 +237,10 @@ func (r *VPNHubResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		"id": []int{int(state.ID.ValueInt64())},
 	}
 
-	r.client.Delete(ctx, "/vpn/hubs", deleteReq) //nolint:errcheck // delete is best-effort
+	if err := r.client.Delete(ctx, "/vpn/hubs", deleteReq); err != nil {
+		resp.Diagnostics.AddError("Error deleting VPN hub", fmt.Sprintf("Could not delete VPN hub %d: %s", state.ID.ValueInt64(), err))
+		return
+	}
 }
 
 func (r *VPNHubResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

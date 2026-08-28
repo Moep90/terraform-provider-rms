@@ -202,7 +202,10 @@ func (r *DeviceTagsResource) Delete(ctx context.Context, req resource.DeleteRequ
 		"tag_ids": []interface{}{},
 	}
 
-	r.client.Put(ctx, fmt.Sprintf("/devices/%d/tags", state.DeviceID.ValueInt64()), emptyReq, nil) //nolint:errcheck // delete is best-effort
+	if err := r.client.Put(ctx, fmt.Sprintf("/devices/%d/tags", state.DeviceID.ValueInt64()), emptyReq, nil); err != nil {
+		resp.Diagnostics.AddError("Error clearing device tags", fmt.Sprintf("Could not clear tags for device %d: %s", state.DeviceID.ValueInt64(), err))
+		return
+	}
 }
 
 func (r *DeviceTagsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
