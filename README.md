@@ -21,6 +21,8 @@ This provider allows you to manage Teltonika RMS resources using Terraform or Op
 - Tags (for organizing devices)
 - Users
 - User Invitations
+- Tasks (commands and configurations for devices)
+- Task Groups (organize related tasks for batch operations)
 
 ## Installation
 
@@ -146,6 +148,8 @@ data "teltonika-rms_tags" "all" {}
 - `teltonika-rms_tag` - Manages a Teltonika RMS Tag
 - `teltonika-rms_user` - Manages a Teltonika RMS User
 - `teltonika-rms_invitation` - Manages a Teltonika RMS User Invitation
+- `teltonika-rms_task` - Manages a Teltonika RMS Task (commands/configurations for devices)
+- `teltonika-rms_task_group` - Manages a Teltonika RMS Task Group (organizes related tasks)
 
 ## Data Sources
 
