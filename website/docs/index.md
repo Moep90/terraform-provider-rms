@@ -15,14 +15,14 @@ Use the navigation to the left to read about the available resources.
 ```hcl
 terraform {
   required_providers {
-    teltonika_rms = {
-      source = "teltonika-rms/teltonika_rms"
+    teltonika-rms = {
+      source = "teltonika-rms/teltonika-rms"
       version = ">= 0.1.0"
     }
   }
 }
 
-provider "teltonika_rms" {
+provider "teltonika-rms" {
   token = var.teltonika_token
 }
 ```

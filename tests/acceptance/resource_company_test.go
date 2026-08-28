@@ -19,7 +19,7 @@ func TestAccCompanyResource(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
-		PreCheck:                 func() { TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCompanyConfig(companyName),
@@ -36,11 +36,11 @@ func TestAccCompanyResource(t *testing.T) {
 func testAccCompanyConfig(name string) string {
 	return fmt.Sprintf(`
 provider "teltonika-rms" {
-  token = os.Getenv("TELTONIKA_RMS_TOKEN")
+  token = "%s"
 }
 
 resource "teltonika-rms_company" "test" {
   company_name = "%s"
 }
-`, name)
+`, os.Getenv("TELTONIKA_RMS_TOKEN"), name)
 }

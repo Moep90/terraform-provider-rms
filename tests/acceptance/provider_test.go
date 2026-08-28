@@ -15,7 +15,7 @@ const (
 )
 
 // TestAccPreCheck validates the necessary environment variables are set
-func TestAccPreCheck(t *testing.T) {
+func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("TELTONIKA_RMS_TOKEN"); v == "" {
 		t.Fatal("TELTONIKA_RMS_TOKEN must be set for acceptance tests")
 	}
