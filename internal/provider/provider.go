@@ -142,6 +142,7 @@ func (p *TeltonikaProvider) Resources(_ context.Context) []func() resource.Resou
 		NewCompanyResource,
 		NewDeviceResource,
 		NewDeviceTagsResource,
+		NewEmailConfigurationResource,
 		NewTagResource,
 		NewUserResource,
 		NewInvitationResource,
