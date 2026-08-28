@@ -102,18 +102,18 @@ func TestAccTask(t *testing.T) {
 			{
 				Config: testAccTaskConfig(server.URL, "test-task", "Test task description"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_task.test", "name", "test-task"),
-					resource.TestCheckResourceAttr("teltonika-rms_task.test", "description", "Test task description"),
-					resource.TestCheckResourceAttr("teltonika-rms_task.test", "task_type", "reboot"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_task.test", "id"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_task.test", "status"),
+					resource.TestCheckResourceAttr("rms_task.test", "name", "test-task"),
+					resource.TestCheckResourceAttr("rms_task.test", "description", "Test task description"),
+					resource.TestCheckResourceAttr("rms_task.test", "task_type", "reboot"),
+					resource.TestCheckResourceAttrSet("rms_task.test", "id"),
+					resource.TestCheckResourceAttrSet("rms_task.test", "status"),
 				),
 			},
 			{
 				Config: testAccTaskConfig(server.URL, "test-task", "Updated description"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_task.test", "name", "test-task"),
-					resource.TestCheckResourceAttr("teltonika-rms_task.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("rms_task.test", "name", "test-task"),
+					resource.TestCheckResourceAttr("rms_task.test", "description", "Updated description"),
 				),
 			},
 		},
@@ -122,12 +122,12 @@ func TestAccTask(t *testing.T) {
 
 func testAccTaskConfig(baseURL, name, description string) string {
 	return `
-provider "teltonika-rms" {
+provider "rms" {
   token     = "test-token"
   base_url  = "` + baseURL + `"
 }
 
-resource "teltonika-rms_task" "test" {
+resource "rms_task" "test" {
   name        = "` + name + `"
   description = "` + description + `"
   task_type   = "reboot"

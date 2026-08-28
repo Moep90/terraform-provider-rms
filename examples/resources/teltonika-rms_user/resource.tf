@@ -1,4 +1,4 @@
-resource "teltonika-rms_user" "admin" {
+resource "rms_user" "admin" {
   username   = "admin"
   email      = "admin@example.com"
   role       = "admin"

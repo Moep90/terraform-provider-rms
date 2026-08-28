@@ -95,18 +95,18 @@ func TestAccTaskGroup(t *testing.T) {
 			{
 				Config: testAccTaskGroupConfig(server.URL, "test-task-group", "Test task group description"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_task_group.test", "name", "test-task-group"),
-					resource.TestCheckResourceAttr("teltonika-rms_task_group.test", "description", "Test task group description"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_task_group.test", "id"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_task_group.test", "status"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_task_group.test", "task_count"),
+					resource.TestCheckResourceAttr("rms_task_group.test", "name", "test-task-group"),
+					resource.TestCheckResourceAttr("rms_task_group.test", "description", "Test task group description"),
+					resource.TestCheckResourceAttrSet("rms_task_group.test", "id"),
+					resource.TestCheckResourceAttrSet("rms_task_group.test", "status"),
+					resource.TestCheckResourceAttrSet("rms_task_group.test", "task_count"),
 				),
 			},
 			{
 				Config: testAccTaskGroupConfig(server.URL, "test-task-group-updated", "Updated description"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_task_group.test", "name", "test-task-group-updated"),
-					resource.TestCheckResourceAttr("teltonika-rms_task_group.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("rms_task_group.test", "name", "test-task-group-updated"),
+					resource.TestCheckResourceAttr("rms_task_group.test", "description", "Updated description"),
 				),
 			},
 		},
@@ -115,12 +115,12 @@ func TestAccTaskGroup(t *testing.T) {
 
 func testAccTaskGroupConfig(baseURL, name, description string) string {
 	return `
-provider "teltonika-rms" {
+provider "rms" {
   token     = "test-token"
   base_url  = "` + baseURL + `"
 }
 
-resource "teltonika-rms_task_group" "test" {
+resource "rms_task_group" "test" {
   name        = "` + name + `"
   description = "` + description + `"
   company_id  = 1

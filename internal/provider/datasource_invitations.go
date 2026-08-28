@@ -34,7 +34,7 @@ type InvitationDataModel struct {
 }
 
 func (d *InvitationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_invitations"
+	resp.TypeName = "rms_invitations"
 }
 
 func (d *InvitationsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

@@ -1,5 +1,5 @@
-data "teltonika-rms_invitations" "all" {}
+data "rms_invitations" "all" {}
 
 output "invitation_emails" {
-  value = data.teltonika-rms_invitations.all.invitations[*].email
+  value = data.rms_invitations.all.invitations[*].email
 }

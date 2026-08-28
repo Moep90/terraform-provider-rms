@@ -39,7 +39,7 @@ type DeviceDataModel struct {
 }
 
 func (d *DevicesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_devices"
+	resp.TypeName = "rms_devices"
 }
 
 func (d *DevicesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

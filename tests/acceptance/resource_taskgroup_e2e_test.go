@@ -20,7 +20,7 @@ func TestAccTaskGroup_E2E(t *testing.T) {
 		baseURL = "https://rms.teltonika-networks.com/api"
 	}
 
-	resourceName := "teltonika-rms_task_group.test"
+	resourceName := "rms_task_group.test"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -49,12 +49,12 @@ func TestAccTaskGroup_E2E(t *testing.T) {
 
 func testAccTaskGroupE2EConfig(baseURL, token, name string, companyID int) string {
 	return fmt.Sprintf(`
-provider "teltonika-rms" {
+provider "rms" {
   token     = %q
   base_url  = %q
 }
 
-resource "teltonika-rms_task_group" "test" {
+resource "rms_task_group" "test" {
   name        = %q
   company_id  = %d
 }

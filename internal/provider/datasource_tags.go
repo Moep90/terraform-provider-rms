@@ -34,7 +34,7 @@ type TagDataModel struct {
 }
 
 func (d *TagsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_tags"
+	resp.TypeName = "rms_tags"
 }
 
 func (d *TagsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

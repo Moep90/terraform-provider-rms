@@ -36,7 +36,7 @@ type TeltonikaProviderModel struct {
 
 // Metadata sets the provider's name and version.
 func (p *TeltonikaProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "teltonika-rms"
+	resp.TypeName = "rms"
 	resp.Version = p.version
 }
 

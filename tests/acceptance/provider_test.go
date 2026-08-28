@@ -16,7 +16,7 @@ const (
 
 // ProtoV6ProviderFactories are used to create a test provider
 var ProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"teltonika-rms": providerserver.NewProtocol6WithError(provider.New("test")()),
+	"rms": providerserver.NewProtocol6WithError(provider.New("test")()),
 }
 
 // isRealAPITest returns true if we should test against the real API

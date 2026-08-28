@@ -79,19 +79,19 @@ func TestAccUser(t *testing.T) {
 			{
 				Config: testAccUserConfig(server.URL, "user-a", "a@example.com", "viewer"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_user.test", "username", "user-a"),
-					resource.TestCheckResourceAttr("teltonika-rms_user.test", "email", "a@example.com"),
-					resource.TestCheckResourceAttr("teltonika-rms_user.test", "role", "viewer"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_user.test", "id"),
+					resource.TestCheckResourceAttr("rms_user.test", "username", "user-a"),
+					resource.TestCheckResourceAttr("rms_user.test", "email", "a@example.com"),
+					resource.TestCheckResourceAttr("rms_user.test", "role", "viewer"),
+					resource.TestCheckResourceAttrSet("rms_user.test", "id"),
 				),
 			},
 			{
 				Config: testAccUserConfig(server.URL, "user-b", "b@example.com", "admin"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_user.test", "username", "user-b"),
-					resource.TestCheckResourceAttr("teltonika-rms_user.test", "email", "b@example.com"),
-					resource.TestCheckResourceAttr("teltonika-rms_user.test", "role", "admin"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_user.test", "id"),
+					resource.TestCheckResourceAttr("rms_user.test", "username", "user-b"),
+					resource.TestCheckResourceAttr("rms_user.test", "email", "b@example.com"),
+					resource.TestCheckResourceAttr("rms_user.test", "role", "admin"),
+					resource.TestCheckResourceAttrSet("rms_user.test", "id"),
 				),
 			},
 		},
@@ -100,12 +100,12 @@ func TestAccUser(t *testing.T) {
 
 func testAccUserConfig(baseURL, username, email, role string) string {
 	return `
-provider "teltonika-rms" {
+provider "rms" {
   token     = "test-token"
   base_url  = "` + baseURL + `"
 }
 
-resource "teltonika-rms_user" "test" {
+resource "rms_user" "test" {
   username   = "` + username + `"
   email      = "` + email + `"
   role       = "` + role + `"

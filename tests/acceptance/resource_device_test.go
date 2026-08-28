@@ -112,21 +112,21 @@ func TestAccDevice(t *testing.T) {
 			{
 				Config: testAccDeviceConfig(server.URL, "dev-a", "rut"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_device.test", "name", "dev-a"),
-					resource.TestCheckResourceAttr("teltonika-rms_device.test", "device_series", "rut"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_device.test", "id"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_device.test", "status"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_device.test", "firmware"),
+					resource.TestCheckResourceAttr("rms_device.test", "name", "dev-a"),
+					resource.TestCheckResourceAttr("rms_device.test", "device_series", "rut"),
+					resource.TestCheckResourceAttrSet("rms_device.test", "id"),
+					resource.TestCheckResourceAttrSet("rms_device.test", "status"),
+					resource.TestCheckResourceAttrSet("rms_device.test", "firmware"),
 				),
 			},
 			{
 				Config: testAccDeviceConfig(server.URL, "dev-b", "rut"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_device.test", "name", "dev-b"),
-					resource.TestCheckResourceAttr("teltonika-rms_device.test", "device_series", "rut"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_device.test", "id"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_device.test", "status"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_device.test", "firmware"),
+					resource.TestCheckResourceAttr("rms_device.test", "name", "dev-b"),
+					resource.TestCheckResourceAttr("rms_device.test", "device_series", "rut"),
+					resource.TestCheckResourceAttrSet("rms_device.test", "id"),
+					resource.TestCheckResourceAttrSet("rms_device.test", "status"),
+					resource.TestCheckResourceAttrSet("rms_device.test", "firmware"),
 				),
 			},
 		},
@@ -135,12 +135,12 @@ func TestAccDevice(t *testing.T) {
 
 func testAccDeviceConfig(baseURL, name, series string) string {
 	return `
-provider "teltonika-rms" {
+provider "rms" {
   token     = "test-token"
   base_url  = "` + baseURL + `"
 }
 
-resource "teltonika-rms_device" "test" {
+resource "rms_device" "test" {
   name            = "` + name + `"
   device_series   = "` + series + `"
   serial          = "0123456789"

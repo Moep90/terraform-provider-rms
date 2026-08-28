@@ -19,7 +19,7 @@ func TestAccTag_E2E(t *testing.T) {
 		baseURL = "https://rms.teltonika-networks.com/api"
 	}
 
-	resourceName := "teltonika-rms_tag.test"
+	resourceName := "rms_tag.test"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -46,38 +46,38 @@ func TestAccTag_E2E(t *testing.T) {
 
 func testAccTagE2EConfig(baseURL, token string) string {
 	return fmt.Sprintf(`
-provider "teltonika-rms" {
+provider "rms" {
   token     = %q
   base_url  = %q
 }
 
-resource "teltonika-rms_company" "test" {
+resource "rms_company" "test" {
   company_name = "E2E Tag Test Company"
 }
 
-resource "teltonika-rms_tag" "test" {
+resource "rms_tag" "test" {
   name       = "e2e-tag-test"
   color      = "#00ff00"
-  company_id = teltonika-rms_company.test.id
+  company_id = rms_company.test.id
 }
 `, token, baseURL)
 }
 
 func testAccTagE2EConfigUpdated(baseURL, token string) string {
 	return fmt.Sprintf(`
-provider "teltonika-rms" {
+provider "rms" {
   token     = %q
   base_url  = %q
 }
 
-resource "teltonika-rms_company" "test" {
+resource "rms_company" "test" {
   company_name = "E2E Tag Test Company"
 }
 
-resource "teltonika-rms_tag" "test" {
+resource "rms_tag" "test" {
   name       = "e2e-tag-updated"
   color      = "#0000ff"
-  company_id = teltonika-rms_company.test.id
+  company_id = rms_company.test.id
 }
 `, token, baseURL)
 }

@@ -81,17 +81,17 @@ func TestAccTag(t *testing.T) {
 			{
 				Config: testAccTagConfig(server.URL, "tag-a", "#00ff00"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_tag.test", "name", "tag-a"),
-					resource.TestCheckResourceAttr("teltonika-rms_tag.test", "color", "#00ff00"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_tag.test", "id"),
+					resource.TestCheckResourceAttr("rms_tag.test", "name", "tag-a"),
+					resource.TestCheckResourceAttr("rms_tag.test", "color", "#00ff00"),
+					resource.TestCheckResourceAttrSet("rms_tag.test", "id"),
 				),
 			},
 			{
 				Config: testAccTagConfig(server.URL, "tag-b", "#0000ff"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_tag.test", "name", "tag-b"),
-					resource.TestCheckResourceAttr("teltonika-rms_tag.test", "color", "#0000ff"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_tag.test", "id"),
+					resource.TestCheckResourceAttr("rms_tag.test", "name", "tag-b"),
+					resource.TestCheckResourceAttr("rms_tag.test", "color", "#0000ff"),
+					resource.TestCheckResourceAttrSet("rms_tag.test", "id"),
 				),
 			},
 		},
@@ -100,12 +100,12 @@ func TestAccTag(t *testing.T) {
 
 func testAccTagConfig(baseURL, name, color string) string {
 	return `
-provider "teltonika-rms" {
+provider "rms" {
   token     = "test-token"
   base_url  = "` + baseURL + `"
 }
 
-resource "teltonika-rms_tag" "test" {
+resource "rms_tag" "test" {
   name       = "` + name + `"
   color      = "` + color + `"
   company_id = 1

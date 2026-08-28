@@ -1,5 +1,5 @@
-data "teltonika-rms_tags" "all" {}
+data "rms_tags" "all" {}
 
 output "tag_names" {
-  value = data.teltonika-rms_tags.all.tags[*].name
+  value = data.rms_tags.all.tags[*].name
 }

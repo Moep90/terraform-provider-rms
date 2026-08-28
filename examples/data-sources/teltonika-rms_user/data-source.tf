@@ -1,5 +1,5 @@
-data "teltonika-rms_users" "all" {}
+data "rms_users" "all" {}
 
 output "usernames" {
-  value = data.teltonika-rms_users.all.users[*].username
+  value = data.rms_users.all.users[*].username
 }

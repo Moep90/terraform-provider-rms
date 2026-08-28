@@ -36,7 +36,7 @@ type TaskGroupResourceModel struct {
 }
 
 func (r *TaskGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_task_group"
+	resp.TypeName = "rms_task_group"
 }
 
 func (r *TaskGroupResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

@@ -1,11 +1,11 @@
-resource "teltonika-rms_company" "main" {
+resource "rms_company" "main" {
   company_name = "My Company"
 }
 
-resource "teltonika-rms_task" "reboot_all" {
+resource "rms_task" "reboot_all" {
   name        = "Reboot All Devices"
   description = "Scheduled reboot for all devices"
   task_type   = "reboot"
-  company_id  = teltonika-rms_company.main.id
+  company_id  = rms_company.main.id
   payload     = "{\"command\":\"reboot\"}"
 }

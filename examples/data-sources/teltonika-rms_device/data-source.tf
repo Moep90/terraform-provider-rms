@@ -1,7 +1,7 @@
-data "teltonika-rms_device" "main" {
+data "rms_device" "main" {
   id = 1
 }
 
 output "device_serial" {
-  value = data.teltonika-rms_device.main.serial
+  value = data.rms_device.main.serial
 }

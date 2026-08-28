@@ -19,7 +19,7 @@ func TestAccDevice_E2E(t *testing.T) {
 		baseURL = "https://rms.teltonika-networks.com/api"
 	}
 
-	resourceName := "teltonika-rms_device.test"
+	resourceName := "rms_device.test"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -40,20 +40,20 @@ func TestAccDevice_E2E(t *testing.T) {
 
 func testAccDeviceE2EConfig(baseURL, token string) string {
 	return fmt.Sprintf(`
-provider "teltonika-rms" {
+provider "rms" {
   token     = %q
   base_url  = %q
 }
 
-resource "teltonika-rms_company" "test" {
+resource "rms_company" "test" {
   company_name = "E2E Device Test Company"
 }
 
-resource "teltonika-rms_device" "test" {
+resource "rms_device" "test" {
   name             = "e2e-device-test"
   device_series    = "rut"
   serial           = "E2E123456789"
-  company_id       = teltonika-rms_company.test.id
+  company_id       = rms_company.test.id
   auto_credit_enable = true
 }
 `, token, baseURL)

@@ -40,7 +40,7 @@ type CompanyResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *CompanyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_company"
+	resp.TypeName = "rms_company"
 }
 
 // Schema defines the schema for the resource.

@@ -19,7 +19,7 @@ func TestAccUser_E2E(t *testing.T) {
 		baseURL = "https://rms.teltonika-networks.com/api"
 	}
 
-	resourceName := "teltonika-rms_user.test"
+	resourceName := "rms_user.test"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -48,40 +48,40 @@ func TestAccUser_E2E(t *testing.T) {
 
 func testAccUserE2EConfig(baseURL, token string) string {
 	return fmt.Sprintf(`
-provider "teltonika-rms" {
+provider "rms" {
   token     = %q
   base_url  = %q
 }
 
-resource "teltonika-rms_company" "test" {
+resource "rms_company" "test" {
   company_name = "E2E User Test Company"
 }
 
-resource "teltonika-rms_user" "test" {
+resource "rms_user" "test" {
   username   = "e2e-user-test"
   email      = "e2e@example.com"
   role       = "viewer"
-  company_id = teltonika-rms_company.test.id
+  company_id = rms_company.test.id
 }
 `, token, baseURL)
 }
 
 func testAccUserE2EConfigUpdated(baseURL, token string) string {
 	return fmt.Sprintf(`
-provider "teltonika-rms" {
+provider "rms" {
   token     = %q
   base_url  = %q
 }
 
-resource "teltonika-rms_company" "test" {
+resource "rms_company" "test" {
   company_name = "E2E User Test Company"
 }
 
-resource "teltonika-rms_user" "test" {
+resource "rms_user" "test" {
   username   = "e2e-user-updated"
   email      = "updated@example.com"
   role       = "admin"
-  company_id = teltonika-rms_company.test.id
+  company_id = rms_company.test.id
 }
 `, token, baseURL)
 }

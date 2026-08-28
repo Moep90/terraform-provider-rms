@@ -75,21 +75,21 @@ func TestAccCompany(t *testing.T) {
 			{
 				Config: testAccCompanyConfig(server.URL, "Initial Company"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_company.test", "company_name", "Initial Company"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_company.test", "id"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_company.test", "created_at"),
+					resource.TestCheckResourceAttr("rms_company.test", "company_name", "Initial Company"),
+					resource.TestCheckResourceAttrSet("rms_company.test", "id"),
+					resource.TestCheckResourceAttrSet("rms_company.test", "created_at"),
 				),
 			},
 			{
 				Config: testAccCompanyConfig(server.URL, "Updated Company"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("teltonika-rms_company.test", "company_name", "Updated Company"),
-					resource.TestCheckResourceAttrSet("teltonika-rms_company.test", "id"),
+					resource.TestCheckResourceAttr("rms_company.test", "company_name", "Updated Company"),
+					resource.TestCheckResourceAttrSet("rms_company.test", "id"),
 				),
 			},
 			// Import test temporarily disabled - investigating type conversion issue
 			// {
-			// 	ResourceName:      "teltonika-rms_company.test",
+			// 	ResourceName:      "rms_company.test",
 			// 	ImportState:       true,
 			// 	ImportStateId:     "1",
 			// 	ImportStateVerify: true,
@@ -100,12 +100,12 @@ func TestAccCompany(t *testing.T) {
 
 func testAccCompanyConfig(baseURL, name string) string {
 	return `
-provider "teltonika-rms" {
+provider "rms" {
   token     = "test-token"
   base_url  = "` + baseURL + `"
 }
 
-resource "teltonika-rms_company" "test" {
+resource "rms_company" "test" {
   company_name = "` + name + `"
 }
 `

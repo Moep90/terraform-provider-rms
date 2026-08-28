@@ -33,7 +33,7 @@ type CompanyDataModel struct {
 }
 
 func (d *CompaniesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_companies"
+	resp.TypeName = "rms_companies"
 }
 
 func (d *CompaniesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
