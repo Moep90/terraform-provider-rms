@@ -133,6 +133,8 @@ func (p *TeltonikaProvider) DataSources(_ context.Context) []func() datasource.D
 		NewTagsDataSource,
 		NewUsersDataSource,
 		NewInvitationsDataSource,
+		NewPermissionsDataSource,
+		NewRolesDataSource,
 	}
 }
 
