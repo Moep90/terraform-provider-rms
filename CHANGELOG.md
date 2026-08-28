@@ -15,18 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Provider framework with authentication support
 - API client with retry logic and error handling
-- Resource: `teltonika-rms_company` - Manage RMS companies
-- Resource: `teltonika-rms_device` - Manage devices (RUT, TRB, etc.)
-- Resource: `teltonika-rms_tag` - Manage tags for organizing devices
-- Resource: `teltonika-rms_user` - Manage users
-- Resource: `teltonika-rms_invitation` - Manage user invitations
-- Data source: `teltonika-rms_companies` - List all companies
-- Data source: `teltonika-rms_company` - Get single company
-- Data source: `teltonika-rms_devices` - List devices with filters
-- Data source: `teltonika-rms_device` - Get single device
-- Data source: `teltonika-rms_tags` - List all tags
-- Data source: `teltonika-rms_users` - List all users
-- Data source: `teltonika-rms_invitations` - List all invitations
+- Resource: `rms_company` - Manage RMS companies
+- Resource: `rms_device` - Manage devices (RUT, TRB, etc.)
+- Resource: `rms_tag` - Manage tags for organizing devices
+- Resource: `rms_user` - Manage users
+- Resource: `rms_invitation` - Manage user invitations
+- Data source: `rms_companies` - List all companies
+- Data source: `rms_company` - Get single company
+- Data source: `rms_devices` - List devices with filters
+- Data source: `rms_device` - Get single device
+- Data source: `rms_tags` - List all tags
+- Data source: `rms_users` - List all users
+- Data source: `rms_invitations` - List all invitations
 - Comprehensive documentation
 - Unit tests with ~13% code coverage
 - CI/CD pipeline for Terraform 1.5+ and OpenTofu

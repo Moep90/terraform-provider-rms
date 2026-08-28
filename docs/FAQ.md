@@ -27,13 +27,13 @@ Currently, this provider only supports Personal Access Tokens. OAuth support may
 ## Resources
 
 ### Can I manage devices?
-Yes, the `teltonika-rms_device` resource supports creating and managing devices.
+Yes, the `rms_device` resource supports creating and managing devices.
 
 ### Do tags work with devices?
 Yes, you can create tags and assign them to devices.
 
 ### Can I manage users?
-Yes, the `teltonika-rms_user` resource allows user management.
+Yes, the `rms_user` resource allows user management.
 
 ## Troubleshooting
 
@@ -52,7 +52,7 @@ Devices may take a few moments to appear in RMS. Wait a moment and refresh.
 No. Use environment variables or a secrets manager to avoid storing tokens in state files.
 
 ### How do I handle hierarchical companies?
-Use the `parent_id` attribute on the `teltonika-rms_company` resource.
+Use the `parent_id` attribute on the `rms_company` resource.
 
 ### Can I import existing resources?
 Yes, all resources support import using their ID.

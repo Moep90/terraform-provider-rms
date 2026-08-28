@@ -26,9 +26,9 @@ What version of the Teltonika RMS provider are you using?
 
 Please list the resources affected, e.g.:
 
-- `teltonika-rms_company`
-- `teltonika-rms_device`
-- `teltonika-rms_tag`
+- `rms_company`
+- `rms_device`
+- `rms_tag`
 - etc.
 
 ## Terraform Configuration Files

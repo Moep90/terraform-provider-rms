@@ -17,7 +17,7 @@ If you're moving from the Teltonika RMS CLI tools:
 rms-cli device create --name "My Device" --serial "12345"
 
 # New Terraform approach
-resource "teltonika-rms_device" "example" {
+resource "rms_device" "example" {
   name          = "My Device"
   device_series = "rut"
   serial        = "12345"
@@ -32,10 +32,10 @@ If you're moving from manual RMS web interface management:
 1. **Import existing resources**
 ```bash
 # Import existing company
-terraform import teltonika-rms_company.main 12345
+terraform import rms_company.main 12345
 
 # Import existing device
-terraform import teltonika-rms_device.router 67890
+terraform import rms_device.router 67890
 ```
 
 2. **Generate configuration**
@@ -66,13 +66,13 @@ terraform init -migrate-state
 
 ```hcl
 # Example: Import a company
-terraform import teltonika-rms_company.main 12345
+terraform import rms_company.main 12345
 
 # Example: Import a device
-terraform import teltonika-rms_device.router 67890
+terraform import rms_device.router 67890
 
 # Example: Import a tag
-terraform import teltonika-rms_tag.production 11111
+terraform import rms_tag.production 11111
 ```
 
 ## Breaking Changes

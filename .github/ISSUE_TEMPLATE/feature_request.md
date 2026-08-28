@@ -40,7 +40,7 @@ Example of how the feature would be used:
 
 ```hcl
 # Example configuration
-resource "teltonika-rms_example" "example" {
+resource "rms_example" "example" {
   # Your configuration here
 }
 ```
