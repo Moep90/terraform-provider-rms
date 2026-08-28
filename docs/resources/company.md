@@ -29,10 +29,7 @@ resource "rms_company" "subsidiary" {
 ### Required
 
 - `company_name` (String) The name of the company.
-
-### Optional
-
-- `parent_id` (Number) The parent company ID. If set, this company becomes a subsidiary of the parent.
+- `parent_id` (Number) The parent company ID. RMS rejects a create without it; use the ID of the company the API token belongs to for a top level company.
 
 ### Read-Only
 
