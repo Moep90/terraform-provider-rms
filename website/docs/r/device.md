@@ -1,28 +1,29 @@
 ---
-page_title: "teltonika-rms-device: Teltonika RMS Device"
+page_title: "rms_device: Teltonika RMS Device"
 description: |-
   Manages a Teltonika RMS Device.
 ---
 
-# teltonika-rms-device
+# rms_device
 
 Manages a Teltonika RMS Device. Supports RUT, TRB, and other device series.
 
 ## Example Usage
 
 ```hcl
-resource "teltonika-rms-company" "main" {
+resource "rms_company" "main" {
   company_name = "My Company"
 }
 
-resource "teltonika-rms-device" "router" {
+resource "rms_device" "router" {
   name               = "Office Router"
   device_series      = "rut"
   serial             = "0123456789"
   mac                = "00:11:22:33:44:55"
-  company_id         = teltonika-rms-company.main.id
+  company_id         = rms_company.main.id
   auto_credit_enable = true
   password           = "device-password"
+  monitoring_enable  = true
 }
 ```
 
@@ -33,14 +34,15 @@ The following arguments are required:
 - `name` - (Required) The name of the device.
 - `device_series` - (Required) The device series: rut, trb, etc.
 - `serial` - (Required) The device serial number.
-- `company_id` - (Required) The company ID to assign the device to.
 
 The following arguments are optional:
 
+- `company_id` - (Optional) The company ID to assign the device to. Can be updated to move the device between companies.
 - `mac` - (Optional) The MAC address (required for RUT devices).
 - `imei` - (Optional) The IMEI (required for TRB devices).
 - `auto_credit_enable` - (Optional) Whether to automatically enable credits for the device. Defaults to `true`.
 - `password` - (Optional) The device password for initial validation.
+- `monitoring_enable` - (Optional) Whether monitoring is enabled for the device.
 
 ## Attribute Reference
 
@@ -56,5 +58,5 @@ In addition to all arguments above, the following attributes are exported:
 Devices can be imported using their ID:
 
 ```bash
-terraform import teltonika-rms-device.router 12345
+terraform import rms_device.router 12345
 ```
