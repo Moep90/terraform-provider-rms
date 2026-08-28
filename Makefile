@@ -25,7 +25,7 @@ CMD_DIR=cmd/terraform-provider-teltonika-rms
 INTERNAL_DIR=internal
 TEST_DIR=tests
 
-.PHONY: all build test lint fmt clean help install-tools pre-commit release-check
+.PHONY: all build test lint fmt clean help install-tools pre-commit
 
 # Default target
 all: build
@@ -118,7 +118,8 @@ install: build
 
 ## Generate documentation
 docs:
-	@echo "Run: go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs"
+	@echo "Generating provider documentation..."
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 ## Release (creates tag and triggers CI)
 release:
@@ -156,7 +157,6 @@ help:
 	@echo "  clean       - Remove build artifacts"
 	@echo "  install-tools - Install development tools"
 	@echo "  pre-commit  - Run pre-commit hooks"
-	@echo "  release-check - Run release checklist"
 	@echo ""
 	@echo "Release:"
 	@echo "  release     - Prepare for release"

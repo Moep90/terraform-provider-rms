@@ -15,7 +15,6 @@ import (
 
 const (
 	BaseURL    = "https://rms.teltonika-networks.com/api"
-	UserAgent  = "Terraform-Provider-Teltonika-RMS/1.0.0"
 	APIVersion = "v3"
 	Timeout    = 30 * time.Second
 	MaxRetries = 3
@@ -25,12 +24,16 @@ const (
 // ErrNotFound is returned when a resource is not found (404)
 var ErrNotFound = fmt.Errorf("resource not found")
 
+// DefaultUserAgent is the default User-Agent header value used by NewClient
+var DefaultUserAgent = "Terraform-Provider-Teltonika-RMS/dev"
+
 // Client represents the Teltonika RMS API client
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
 	token      string
 	maxRetries int
+	userAgent  string
 }
 
 // NewClient creates a new Teltonika RMS API client
@@ -46,6 +49,7 @@ func NewClient(ctx context.Context, token string) *Client {
 		},
 		token:      token,
 		maxRetries: MaxRetries,
+		userAgent:  DefaultUserAgent,
 	}
 }
 
@@ -62,12 +66,14 @@ func NewClientWithBaseURL(baseURL, token string) *Client {
 }
 
 // NewClientWithOptions creates a client with custom options
-func NewClientWithOptions(ctx context.Context, token, baseURL string, timeout time.Duration, maxRetries int) *Client {
+func NewClientWithOptions(ctx context.Context, token, baseURL string, timeout time.Duration, maxRetries int, version string) *Client {
 	tflog.Info(ctx, "Creating Teltonika RMS API client", map[string]interface{}{
 		"base_url":  baseURL,
 		"timeout":   timeout.String(),
 		"max_retry": maxRetries,
 	})
+
+	userAgent := fmt.Sprintf("Terraform-Provider-Teltonika-RMS/%s", version)
 
 	return &Client{
 		baseURL: baseURL,
@@ -76,12 +82,13 @@ func NewClientWithOptions(ctx context.Context, token, baseURL string, timeout ti
 		},
 		token:      token,
 		maxRetries: maxRetries,
+		userAgent:  userAgent,
 	}
 }
 
 // setRequestHeaders sets common headers for all requests
 func (c *Client) setRequestHeaders(req *http.Request) {
-	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))

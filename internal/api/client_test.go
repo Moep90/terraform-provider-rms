@@ -35,7 +35,7 @@ func TestClientSetRequestHeaders(t *testing.T) {
 
 	client.setRequestHeaders(req)
 
-	assert.Equal(t, UserAgent, req.Header.Get("User-Agent"))
+	assert.Equal(t, DefaultUserAgent, req.Header.Get("User-Agent"))
 	assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
 	assert.Equal(t, "application/json", req.Header.Get("Accept"))
 	assert.Equal(t, "Bearer test-token", req.Header.Get("Authorization"))
@@ -197,7 +197,7 @@ func TestClientForbiddenErrorSpecific(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
 
 	err := client.Get(context.Background(), "/test", nil, nil)
 	if err == nil {
@@ -218,7 +218,7 @@ func TestClientTypeSafety(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
 
 	var result map[string]interface{}
 	err := client.Get(context.Background(), "/test", nil, &result)
@@ -248,7 +248,7 @@ func TestClientNotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
 
 	var result map[string]interface{}
 	err := client.Get(context.Background(), "/test", nil, &result)
@@ -268,7 +268,7 @@ func TestClientDeleteWithNilTarget(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
 
 	// Delete with nil target should not error
 	err := client.Delete(context.Background(), "/test", nil)
@@ -284,7 +284,7 @@ func TestClientDeleteWithEmptyBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries)
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
 
 	// Delete with empty body should not error
 	err := client.Delete(context.Background(), "/test", nil)
@@ -302,7 +302,7 @@ func TestClientRetryRespectsContextCancellation(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, 3)
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, 3, "test")
 
 	// Create a context that will be cancelled after first attempt completes
 	ctx, cancel := context.WithCancel(context.Background())

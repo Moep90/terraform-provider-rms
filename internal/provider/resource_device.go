@@ -207,6 +207,37 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 	data.Name = types.StringValue(name)
+
+	deviceSeries, ok := result["device_series"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error parsing device_series",
+			"Could not parse device_series from API response",
+		)
+		return
+	}
+	data.DeviceSeries = types.StringValue(deviceSeries)
+
+	if serial, ok := result["serial"].(string); ok {
+		data.Serial = types.StringValue(serial)
+	}
+
+	if mac, ok := result["mac"].(string); ok {
+		data.Mac = types.StringValue(mac)
+	}
+
+	if imei, ok := result["imei"].(string); ok {
+		data.Imei = types.StringValue(imei)
+	}
+
+	if companyID, ok := result["company_id"].(float64); ok {
+		data.CompanyID = types.Int64Value(int64(companyID))
+	}
+
+	if autoCreditEnable, ok := result["auto_credit_enable"].(bool); ok {
+		data.AutoCreditEnable = types.BoolValue(autoCreditEnable)
+	}
+
 	status, ok := result["status"].(string)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -219,6 +250,10 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	if firmware, ok := result["firmware"].(string); ok {
 		data.Firmware = types.StringValue(firmware)
+	}
+
+	if createdAt, ok := result["created_at"].(string); ok {
+		data.CreatedAt = types.StringValue(createdAt)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

@@ -31,6 +31,9 @@ func TestAccDevice(t *testing.T) {
 			store["device_series"] = req["device_series"]
 			store["serial"] = req["serial"]
 			store["company_id"] = req["company_id"]
+			if mac, ok := req["mac"].(string); ok {
+				store["mac"] = mac
+			}
 			w.Header().Set("Content-Type", "application/json")
 			response := map[string]interface{}{
 				"id":                 1,
@@ -43,6 +46,9 @@ func TestAccDevice(t *testing.T) {
 				"created_at":         store["created_at"],
 				"auto_credit_enable": store["auto_credit_enable"],
 			}
+			if mac, ok := store["mac"]; ok {
+				response["mac"] = mac
+			}
 			_ = json.NewEncoder(w).Encode(response)
 
 		case r.Method == http.MethodGet && r.URL.Path == "/devices/1":
@@ -53,11 +59,13 @@ func TestAccDevice(t *testing.T) {
 				"device_series":      store["device_series"],
 				"serial":             store["serial"],
 				"company_id":         store["company_id"],
-				"mac":                "00:11:22:33:44:55",
 				"status":             store["status"],
 				"firmware":           store["firmware"],
 				"created_at":         store["created_at"],
 				"auto_credit_enable": store["auto_credit_enable"],
+			}
+			if mac, ok := store["mac"]; ok {
+				response["mac"] = mac
 			}
 			_ = json.NewEncoder(w).Encode(response)
 

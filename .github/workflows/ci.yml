@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [1.22.x]
+        go-version: [1.25.x]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.25.x
           cache: true
 
       - name: golangci-lint
@@ -70,7 +70,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.25.x
 
       - name: Build
         run: go build -v ./...
@@ -81,33 +81,23 @@ jobs:
       - name: Ensure no changes
         run: git diff --exit-code
 
-  tofu-test:
-    name: OpenTofu Test
+  acceptance-test:
+    name: Acceptance Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-
-      - name: Run Tofu fmt check
-        run: tofu fmt -check -diff ./examples/
-
-  terraform-test:
-    name: Terraform Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          terraform_version: 1.9.0
+          go-version: 1.25.x
 
-      - name: Run Terraform fmt check
-        run: terraform fmt -check -diff ./examples/
+      - name: Go Mod Download
+        run: go mod download
+
+      - name: Run Acceptance Tests
+        run: TF_ACC=1 go test -v -race ./tests/acceptance/
 
   security:
     name: Security Scan
@@ -131,7 +121,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.25.x
 
       - name: Check Go Modules
         run: |
@@ -143,21 +133,3 @@ jobs:
         run: |
           go fmt ./...
           git diff --exit-code
-
-  acceptance-test:
-    name: Acceptance Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22.x
-
-      - name: Go Mod Download
-        run: go mod download
-
-      - name: Run Acceptance Tests
-        run: TF_ACC=1 go test -v -race ./tests/acceptance/

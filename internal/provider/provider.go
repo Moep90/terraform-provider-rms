@@ -114,6 +114,7 @@ func (p *TeltonikaProvider) Configure(ctx context.Context, req provider.Configur
 		data.BaseURL.ValueString(),
 		time.Duration(data.Timeout.ValueInt64())*time.Second,
 		int(data.MaxRetry.ValueInt64()),
+		p.version,
 	)
 
 	resp.DataSourceData = client
