@@ -2,12 +2,15 @@ version: "2"
 
 linters:
   enable:
+    - errcheck
     - govet
     - ineffassign
     - staticcheck
     - unused
-  disable:
-    - errcheck
+    - forcetypeassert
+    - bodyclose
+    - noctx
+    - errorlint
 
 issues:
   exclude-use-default: false

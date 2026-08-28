@@ -20,10 +20,10 @@ func TestMockAPI_CompanyUpdate(t *testing.T) {
 		switch {
 		case r.Method == http.MethodPost && r.URL.Path == "/api/v3/companies":
 			var req map[string]interface{}
-			json.NewDecoder(r.Body).Decode(&req)
+			_ = json.NewDecoder(r.Body).Decode(&req)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
 				"company_name": req["company_name"],
 				"created_at":   "2024-01-01T00:00:00Z",
@@ -33,7 +33,7 @@ func TestMockAPI_CompanyUpdate(t *testing.T) {
 		case r.Method == http.MethodGet && r.URL.Path == "/api/v3/companies/1":
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
 				"company_name": "Test Company",
 				"created_at":   "2024-01-01T00:00:00Z",
@@ -42,10 +42,10 @@ func TestMockAPI_CompanyUpdate(t *testing.T) {
 
 		case r.Method == http.MethodPut && r.URL.Path == "/api/v3/companies/1":
 			var req map[string]interface{}
-			json.NewDecoder(r.Body).Decode(&req)
+			_ = json.NewDecoder(r.Body).Decode(&req)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
 				"company_name": req["company_name"],
 				"parent_id":    req["parent_id"],
@@ -55,7 +55,7 @@ func TestMockAPI_CompanyUpdate(t *testing.T) {
 
 		case r.Method == http.MethodDelete && r.URL.Path == "/api/v3/companies/1":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"success":true}`))
+			_, _ = w.Write([]byte(`{"success":true}`))
 
 		default:
 			w.WriteHeader(http.StatusNotFound)

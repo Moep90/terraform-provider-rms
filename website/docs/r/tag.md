@@ -1,23 +1,23 @@
 ---
-page_title: "teltonika_rms_tag: Teltonika RMS Tag"
+page_title: "teltonika-rms-tag: Teltonika RMS Tag"
 description: |-
   Manages a Teltonika RMS Tag.
 ---
 
-# teltonika_rms_tag
+# teltonika-rms-tag
 
 Manages a Teltonika RMS Tag. Tags can be used to organize and filter devices.
 
 ## Example Usage
 
 ```hcl
-resource "teltonika_rms_tag" "production" {
+resource "teltonika-rms-tag" "production" {
   name       = "Production"
   color      = "#00ff00"
   company_id = 12345
 }
 
-resource "teltonika_rms_tag" "development" {
+resource "teltonika-rms-tag" "development" {
   name       = "Development"
   color      = "#ff0000"
   company_id = 12345
@@ -47,5 +47,5 @@ In addition to all arguments above, the following attributes are exported:
 Tags can be imported using their ID:
 
 ```bash
-terraform import teltonika_rms_tag.production 12345
+terraform import teltonika-rms-tag.production 12345
 ```

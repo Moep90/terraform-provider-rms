@@ -13,7 +13,7 @@ func TestClientUpdatePopulatesComputed(t *testing.T) {
 		if r.Method == http.MethodPut && r.URL.Path == "/companies/1" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
 				"company_name": "Updated Company",
 				"created_at":   "2024-01-01T00:00:00Z",

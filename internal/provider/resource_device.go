@@ -102,10 +102,16 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"status": schema.StringAttribute{
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "The device status: online, offline, not_activated.",
 			},
 			"firmware": schema.StringAttribute{
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "The device firmware version.",
 			},
 			"created_at": schema.StringAttribute{

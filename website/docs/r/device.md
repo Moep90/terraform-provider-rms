@@ -1,26 +1,26 @@
 ---
-page_title: "teltonika_rms_device: Teltonika RMS Device"
+page_title: "teltonika-rms-device: Teltonika RMS Device"
 description: |-
   Manages a Teltonika RMS Device.
 ---
 
-# teltonika_rms_device
+# teltonika-rms-device
 
 Manages a Teltonika RMS Device. Supports RUT, TRB, and other device series.
 
 ## Example Usage
 
 ```hcl
-resource "teltonika_rms_company" "main" {
+resource "teltonika-rms-company" "main" {
   company_name = "My Company"
 }
 
-resource "teltonika_rms_device" "router" {
+resource "teltonika-rms-device" "router" {
   name               = "Office Router"
   device_series      = "rut"
   serial             = "0123456789"
   mac                = "00:11:22:33:44:55"
-  company_id         = teltonika_rms_company.main.id
+  company_id         = teltonika-rms-company.main.id
   auto_credit_enable = true
   password           = "device-password"
 }
@@ -56,5 +56,5 @@ In addition to all arguments above, the following attributes are exported:
 Devices can be imported using their ID:
 
 ```bash
-terraform import teltonika_rms_device.router 12345
+terraform import teltonika-rms-device.router 12345
 ```

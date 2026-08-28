@@ -1,20 +1,20 @@
 ---
-page_title: "teltonika_rms_users: Teltonika RMS Users"
+page_title: "teltonika-rms-users: Teltonika RMS Users"
 description: |-
   Retrieves a list of Teltonika RMS Users.
 ---
 
-# teltonika_rms_users
+# teltonika-rms-users
 
 Retrieves a list of all Teltonika RMS Users.
 
 ## Example Usage
 
 ```hcl
-data "teltonika_rms_users" "all" {}
+data "teltonika-rms-users" "all" {}
 
 output "usernames" {
-  value = data.teltonika_rms_users.all.users[*].username
+  value = data.teltonika-rms-users.all.users[*].username
 }
 ```
 

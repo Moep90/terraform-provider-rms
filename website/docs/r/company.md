@@ -1,23 +1,23 @@
 ---
-page_title: "teltonika_rms_company: Teltonika RMS Company"
+page_title: "teltonika-rms-company: Teltonika RMS Company"
 description: |-
   Manages a Teltonika RMS Company.
 ---
 
-# teltonika_rms_company
+# teltonika-rms-company
 
 Manages a Teltonika RMS Company. Companies can be hierarchical with parent-child relationships.
 
 ## Example Usage
 
 ```hcl
-resource "teltonika_rms_company" "main" {
+resource "teltonika-rms-company" "main" {
   company_name = "Main Company"
 }
 
-resource "teltonika_rms_company" "subsidiary" {
+resource "teltonika-rms-company" "subsidiary" {
   company_name = "Subsidiary Company"
-  parent_id    = teltonika_rms_company.main.id
+  parent_id    = teltonika-rms-company.main.id
 }
 ```
 
@@ -44,5 +44,5 @@ In addition to all arguments above, the following attributes are exported:
 Companies can be imported using their ID:
 
 ```bash
-terraform import teltonika_rms_company.main 12345
+terraform import teltonika-rms-company.main 12345
 ```

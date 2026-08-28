@@ -104,25 +104,31 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 		if err != nil {
 			continue
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode >= 500 {
+			_ = resp.Body.Close()
 			continue
 		}
 
 		if resp.StatusCode == http.StatusUnauthorized {
+			_ = resp.Body.Close()
 			return fmt.Errorf("unauthorized: invalid or expired token")
 		}
 
 		if resp.StatusCode == http.StatusForbidden {
+			_ = resp.Body.Close()
 			return fmt.Errorf("forbidden: insufficient permissions")
 		}
 
 		if resp.StatusCode >= 400 {
-			return c.handleErrorResponse(resp)
+			err := c.handleErrorResponse(resp)
+			_ = resp.Body.Close()
+			return err
 		}
 
-		return c.decodeResponse(resp, v)
+		err = c.decodeResponse(resp, v)
+		_ = resp.Body.Close()
+		return err
 	}
 
 	return fmt.Errorf("request failed after %d attempts", c.maxRetries)

@@ -1,20 +1,20 @@
 ---
-page_title: "teltonika_rms_companies: Teltonika RMS Companies"
+page_title: "teltonika-rms-companies: Teltonika RMS Companies"
 description: |-
   Retrieves a list of Teltonika RMS Companies.
 ---
 
-# teltonika_rms_companies
+# teltonika-rms-companies
 
 Retrieves a list of all Teltonika RMS Companies.
 
 ## Example Usage
 
 ```hcl
-data "teltonika_rms_companies" "all" {}
+data "teltonika-rms-companies" "all" {}
 
 output "company_names" {
-  value = data.teltonika_rms_companies.all.companies[*].company_name
+  value = data.teltonika-rms-companies.all.companies[*].company_name
 }
 ```
 

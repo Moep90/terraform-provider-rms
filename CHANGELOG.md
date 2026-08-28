@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Data source: `teltonika-rms_users` - List all users
 - Data source: `teltonika-rms_invitations` - List all invitations
 - Comprehensive documentation
-- Unit tests with 62.5% code coverage
+- Unit tests with ~13% code coverage
 - CI/CD pipeline for Terraform 1.5+ and OpenTofu
 - GitHub Actions workflows
 - Security policy and vulnerability reporting process

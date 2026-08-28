@@ -1,20 +1,20 @@
 ---
-page_title: "teltonika_rms_tags: Teltonika RMS Tags"
+page_title: "teltonika-rms-tags: Teltonika RMS Tags"
 description: |-
   Retrieves a list of Teltonika RMS Tags.
 ---
 
-# teltonika_rms_tags
+# teltonika-rms-tags
 
 Retrieves a list of all Teltonika RMS Tags.
 
 ## Example Usage
 
 ```hcl
-data "teltonika_rms_tags" "all" {}
+data "teltonika-rms-tags" "all" {}
 
 output "tag_names" {
-  value = data.teltonika_rms_tags.all.tags[*].name
+  value = data.teltonika-rms-tags.all.tags[*].name
 }
 ```
 

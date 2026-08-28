@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -85,21 +88,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22.x
-
-      - name: Build Provider
-        run: go build -o terraform-provider-teltonika-rms ./cmd/terraform-provider-teltonika-rms
-
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
-
-      - name: Install Provider
-        run: |
-          mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64
-          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64/
 
       - name: Run Tofu fmt check
         run: tofu fmt -check -diff ./examples/
@@ -111,23 +101,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22.x
-
-      - name: Build Provider
-        run: go build -o terraform-provider-teltonika-rms ./cmd/terraform-provider-teltonika-rms
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
-
-      - name: Install Provider
-        run: |
-          mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64
-          cp terraform-provider-teltonika-rms ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/1.0.0/linux_amd64/
+          terraform_version: 1.9.0
 
       - name: Run Terraform fmt check
         run: terraform fmt -check -diff ./examples/

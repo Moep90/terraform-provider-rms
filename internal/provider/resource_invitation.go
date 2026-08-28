@@ -154,12 +154,6 @@ func (r *InvitationResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *InvitationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data InvitationResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	resp.Diagnostics.AddError("Update not supported", "Invitations cannot be updated")
 }
 

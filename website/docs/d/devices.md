@@ -1,25 +1,25 @@
 ---
-page_title: "teltonika_rms_devices: Teltonika RMS Devices"
+page_title: "teltonika-rms-devices: Teltonika RMS Devices"
 description: |-
   Retrieves a list of Teltonika RMS Devices.
 ---
 
-# teltonika_rms_devices
+# teltonika-rms-devices
 
 Retrieves a list of Teltonika RMS Devices with optional filtering.
 
 ## Example Usage
 
 ```hcl
-data "teltonika_rms_devices" "all" {}
+data "teltonika-rms-devices" "all" {}
 
-data "teltonika_rms_devices" "online" {
+data "teltonika-rms-devices" "online" {
   company_id = 12345
   status     = "online"
 }
 
 output "device_names" {
-  value = data.teltonika_rms_devices.all.devices[*].name
+  value = data.teltonika-rms-devices.all.devices[*].name
 }
 ```
 

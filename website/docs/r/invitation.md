@@ -1,17 +1,17 @@
 ---
-page_title: "teltonika_rms_invitation: Teltonika RMS Invitation"
+page_title: "teltonika-rms-invitation: Teltonika RMS Invitation"
 description: |-
   Manages a Teltonika RMS User Invitation.
 ---
 
-# teltonika_rms_invitation
+# teltonika-rms-invitation
 
 Manages a Teltonika RMS User Invitation.
 
 ## Example Usage
 
 ```hcl
-resource "teltonika_rms_invitation" "new_user" {
+resource "teltonika-rms-invitation" "new_user" {
   email      = "newuser@example.com"
   role       = "user"
   company_id = 12345
@@ -38,5 +38,5 @@ In addition to all arguments above, the following attributes are exported:
 Invitations can be imported using their ID:
 
 ```bash
-terraform import teltonika_rms_invitation.new_user 12345
+terraform import teltonika-rms-invitation.new_user 12345
 ```

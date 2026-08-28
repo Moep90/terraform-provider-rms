@@ -16,7 +16,7 @@ Use the navigation to the left to read about the available resources.
 terraform {
   required_providers {
     teltonika-rms = {
-      source = "teltonika-rms/teltonika-rms"
+      source  = "teltonika-rms/teltonika-rms"
       version = ">= 0.1.0"
     }
   }

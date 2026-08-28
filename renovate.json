@@ -16,10 +16,8 @@
   "prConcurrentLimit": 10,
   "rangeStrategy": "update-lockfile",
   "go": {
-    "fileMatch": ["(^|/)go\\.mod$"]
   },
   "github-actions": {
-    "fileMatch": ["(^|/).github/workflows/[^/]+\\.ya?ml$"]
   },
   "ignoreDeps": [],
   "semanticCommits": "enabled",

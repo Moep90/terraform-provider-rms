@@ -18,7 +18,7 @@ GOIMPORTS=goimports
 VERSION?=0.1.0
 COMMIT=$(shell git rev-parse --short HEAD)
 BUILD_TIME=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
-LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.buildTime=$(BUILD_TIME)"
+LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT)"
 
 # Directories
 CMD_DIR=cmd/terraform-provider-teltonika-rms
@@ -105,11 +105,6 @@ pre-commit:
 	@echo "Running pre-commit hooks..."
 	pre-commit run --all-files
 
-## Run release checklist
-release-check:
-	@echo "Running release checklist..."
-	./scripts/release-check.sh
-
 ## Install provider locally
 install: build
 	@echo "Installing provider locally..."
@@ -118,8 +113,7 @@ install: build
 
 ## Generate documentation
 docs:
-	@echo "Generating documentation..."
-	# This would use tfplugindocs if installed
+	@echo "Run: go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs"
 
 ## Release (creates tag and triggers CI)
 release:

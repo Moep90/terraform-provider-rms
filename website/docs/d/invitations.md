@@ -1,20 +1,20 @@
 ---
-page_title: "teltonika_rms_invitations: Teltonika RMS Invitations"
+page_title: "teltonika-rms-invitations: Teltonika RMS Invitations"
 description: |-
   Retrieves a list of Teltonika RMS Invitations.
 ---
 
-# teltonika_rms_invitations
+# teltonika-rms-invitations
 
 Retrieves a list of all Teltonika RMS User Invitations.
 
 ## Example Usage
 
 ```hcl
-data "teltonika_rms_invitations" "all" {}
+data "teltonika-rms-invitations" "all" {}
 
 output "invitation_emails" {
-  value = data.teltonika_rms_invitations.all.invitations[*].email
+  value = data.teltonika-rms-invitations.all.invitations[*].email
 }
 ```
 

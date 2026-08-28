@@ -29,7 +29,7 @@ func TestClientSetRequestHeaders(t *testing.T) {
 	ctx := context.Background()
 	client := NewClient(ctx, "test-token")
 
-	req, err := http.NewRequest("GET", "http://example.com", nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", "http://example.com", nil)
 	require.NoError(t, err)
 
 	client.setRequestHeaders(req)
@@ -46,7 +46,7 @@ func TestClientGet(t *testing.T) {
 		assert.Equal(t, "GET", r.Method)
 		assert.Equal(t, "/test", r.URL.Path)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data": "test"}`))
+		_, _ = w.Write([]byte(`{"data": "test"}`))
 	}))
 	defer server.Close()
 
@@ -71,7 +71,7 @@ func TestClientPost(t *testing.T) {
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, "/test", r.URL.Path)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"id": 1}`))
+		_, _ = w.Write([]byte(`{"id": 1}`))
 	}))
 	defer server.Close()
 
@@ -96,7 +96,7 @@ func TestClientPut(t *testing.T) {
 		assert.Equal(t, "PUT", r.Method)
 		assert.Equal(t, "/test", r.URL.Path)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"updated": true}`))
+		_, _ = w.Write([]byte(`{"updated": true}`))
 	}))
 	defer server.Close()
 
@@ -113,7 +113,7 @@ func TestClientPut(t *testing.T) {
 	err := client.Put(context.Background(), "/test", nil, &result)
 
 	require.NoError(t, err)
-	assert.True(t, result["updated"].(bool))
+	updated, ok := result["updated"].(bool); assert.True(t, ok && updated)
 }
 
 func TestClientDelete(t *testing.T) {
@@ -121,7 +121,7 @@ func TestClientDelete(t *testing.T) {
 		assert.Equal(t, "DELETE", r.Method)
 		assert.Equal(t, "/test", r.URL.Path)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"deleted": true}`))
+		_, _ = w.Write([]byte(`{"deleted": true}`))
 	}))
 	defer server.Close()
 
@@ -138,13 +138,13 @@ func TestClientDelete(t *testing.T) {
 	err := client.Delete(context.Background(), "/test", &result)
 
 	require.NoError(t, err)
-	assert.True(t, result["deleted"].(bool))
+	deleted, ok := result["deleted"].(bool); assert.True(t, ok && deleted)
 }
 
 func TestClientAuthenticationErrors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error": "unauthorized"}`))
+		_, _ = w.Write([]byte(`{"error": "unauthorized"}`))
 	}))
 	defer server.Close()
 
@@ -167,7 +167,7 @@ func TestClientAuthenticationErrors(t *testing.T) {
 func TestClientForbiddenErrors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`{"error": "forbidden"}`))
+		_, _ = w.Write([]byte(`{"error": "forbidden"}`))
 	}))
 	defer server.Close()
 
@@ -190,7 +190,7 @@ func TestClientForbiddenErrors(t *testing.T) {
 func TestClientForbiddenErrorSpecific(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`{"error": "forbidden"}`))
+		_, _ = w.Write([]byte(`{"error": "forbidden"}`))
 	}))
 	defer server.Close()
 
@@ -211,7 +211,7 @@ func TestClientTypeSafety(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id": 1, "company_name": "Test"}`))
+		_, _ = w.Write([]byte(`{"id": 1, "company_name": "Test"}`))
 	}))
 	defer server.Close()
 
@@ -241,7 +241,7 @@ func TestClientTypeSafety(t *testing.T) {
 func TestClientNotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error": "not found"}`))
+		_, _ = w.Write([]byte(`{"error": "not found"}`))
 	}))
 	defer server.Close()
 
@@ -261,7 +261,7 @@ func TestClientNotFound(t *testing.T) {
 func TestClientDeleteWithNilTarget(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"success":true}`))
+		_, _ = w.Write([]byte(`{"success":true}`))
 	}))
 	defer server.Close()
 
