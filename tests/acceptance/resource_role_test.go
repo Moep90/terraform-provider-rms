@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func TestRoleResource_CRUD(t *testing.T) {
@@ -166,6 +167,11 @@ func TestRoleResource_CRUD(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testRoleConfig(server.URL, "Admin Role", "Full admin access", 1, []int{10, 20, 30}),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_role.test", plancheck.ResourceActionCreate),
+					},
+				},
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rms_role.test", "title", "Admin Role"),
 					resource.TestCheckResourceAttr("rms_role.test", "description", "Full admin access"),
@@ -176,12 +182,35 @@ func TestRoleResource_CRUD(t *testing.T) {
 				),
 			},
 			{
+				// title has RequiresReplace, so this step is a replacement, not
+				// an update. Asserting it pins the plan modifier in place.
 				Config: testRoleConfig(server.URL, "Admin Role Updated", "Updated admin access", 1, []int{10, 20}),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_role.test", plancheck.ResourceActionDestroyBeforeCreate),
+					},
+				},
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rms_role.test", "title", "Admin Role Updated"),
 					resource.TestCheckResourceAttr("rms_role.test", "description", "Updated admin access"),
 					resource.TestCheckTypeSetElemAttr("rms_role.test", "permission_ids.*", "10"),
 					resource.TestCheckTypeSetElemAttr("rms_role.test", "permission_ids.*", "20"),
+				),
+			},
+			{
+				// Only the mutable fields change, so this must be an in-place
+				// update. A dropped plan modifier turning it into a replacement
+				// is invisible to a state check.
+				Config: testRoleConfig(server.URL, "Admin Role Updated", "Updated again", 1, []int{10}),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_role.test", plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("rms_role.test", "description", "Updated again"),
+					resource.TestCheckResourceAttr("rms_role.test", "permission_ids.#", "1"),
+					resource.TestCheckTypeSetElemAttr("rms_role.test", "permission_ids.*", "10"),
 				),
 			},
 		},
