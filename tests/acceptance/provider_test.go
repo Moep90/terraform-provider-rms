@@ -21,6 +21,8 @@ var ProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, erro
 
 // isRealAPITest returns true if we should test against the real API
 func isRealAPITest() bool {
+	// E2E tests require both RMS_ADMIN_TOKEN and explicit RUN_E2E_TESTS flag
+	// They are skipped by default to avoid failures when API is unavailable
 	return os.Getenv("RMS_ADMIN_TOKEN") != "" && os.Getenv("RUN_E2E_TESTS") == "true"
 }
 

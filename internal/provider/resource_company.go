@@ -86,11 +86,13 @@ func (r *CompanyResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	createReq := map[string]interface{}{
-		"company_name": data.CompanyName.ValueString(),
+		"name": data.CompanyName.ValueString(),
 	}
 
 	if !data.ParentID.IsNull() {
 		createReq["parent_id"] = data.ParentID.ValueInt64()
+	} else {
+		createReq["parent_id"] = 0
 	}
 
 	var result map[string]interface{}
@@ -111,7 +113,7 @@ func (r *CompanyResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 	data.ID = types.Int64Value(int64(id))
-	companyName, ok := result["company_name"].(string)
+	name, ok := result["name"].(string)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Error parsing company name",
@@ -119,7 +121,7 @@ func (r *CompanyResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 		return
 	}
-	data.CompanyName = types.StringValue(companyName)
+	data.CompanyName = types.StringValue(name)
 
 	if createdAt, ok := result["created_at"].(string); ok {
 		data.CreatedAt = types.StringValue(createdAt)
@@ -155,8 +157,8 @@ func (r *CompanyResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	if companyName, ok := result["company_name"].(string); ok {
-		data.CompanyName = types.StringValue(companyName)
+	if name, ok := result["name"].(string); ok {
+		data.CompanyName = types.StringValue(name)
 	}
 
 	if parentID, ok := result["parent_id"].(float64); ok {
@@ -185,11 +187,13 @@ func (r *CompanyResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	updateReq := map[string]interface{}{
-		"company_name": data.CompanyName.ValueString(),
+		"name": data.CompanyName.ValueString(),
 	}
 
 	if !data.ParentID.IsNull() {
 		updateReq["parent_id"] = data.ParentID.ValueInt64()
+	} else {
+		updateReq["parent_id"] = 0
 	}
 
 	var result map[string]interface{}

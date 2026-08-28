@@ -23,13 +23,13 @@ func TestAccCompany(t *testing.T) {
 		case r.Method == http.MethodPost && r.URL.Path == "/companies":
 			var req map[string]interface{}
 			_ = json.NewDecoder(r.Body).Decode(&req)
-			store["company_name"] = req["company_name"]
+			store["name"] = req["name"]
 			store["created_at"] = "2024-01-01T00:00:00Z"
 			store["device_count"] = float64(0)
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
-				"company_name": req["company_name"],
+				"name":         req["name"],
 				"created_at":   "2024-01-01T00:00:00Z",
 				"device_count": float64(0),
 			})
@@ -38,7 +38,7 @@ func TestAccCompany(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
-				"company_name": store["company_name"],
+				"name":         store["name"],
 				"created_at":   "2024-01-01T00:00:00Z",
 				"device_count": store["device_count"],
 			})
@@ -46,12 +46,12 @@ func TestAccCompany(t *testing.T) {
 		case r.Method == http.MethodPut && r.URL.Path == "/companies/1":
 			var req map[string]interface{}
 			_ = json.NewDecoder(r.Body).Decode(&req)
-			store["company_name"] = req["company_name"]
+			store["name"] = req["name"]
 			store["device_count"] = float64(5)
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":           1,
-				"company_name": req["company_name"],
+				"name":         req["name"],
 				"created_at":   "2024-01-01T00:00:00Z",
 				"device_count": float64(5),
 			})
