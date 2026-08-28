@@ -97,7 +97,13 @@ func (c *Client) do(ctx context.Context, req *http.Request, v interface{}) error
 				"attempt": attempt + 1,
 				"delay":   RetryDelay.String(),
 			})
-			time.Sleep(RetryDelay * time.Duration(attempt))
+			timer := time.NewTimer(RetryDelay * time.Duration(attempt))
+			select {
+			case <-timer.C:
+			case <-ctx.Done():
+				timer.Stop()
+				return ctx.Err()
+			}
 		}
 
 		resp, err := c.httpClient.Do(req)

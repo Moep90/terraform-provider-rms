@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -288,4 +289,41 @@ func TestClientDeleteWithEmptyBody(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error when deleting with empty body, got: %s", err)
 	}
+}
+
+func TestClientRetryRespectsContextCancellation(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		// Always return 500 to trigger retries
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, 3)
+
+	// Create a context that will be cancelled after first attempt completes
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Make the request in a goroutine
+	done := make(chan error, 1)
+	go func() {
+		err := client.Get(ctx, "/test", nil, nil)
+		done <- err
+	}()
+
+	// Wait for first request to complete (should be fast since server responds immediately)
+	time.Sleep(50 * time.Millisecond)
+	
+	// Cancel context to prevent retries
+	cancel()
+
+	// Wait for completion
+	err := <-done
+
+	// Should fail with context error
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "canceled")
+	// Should have made at least one attempt
+	assert.GreaterOrEqual(t, attempts, 1)
 }
