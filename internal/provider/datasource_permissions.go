@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -26,6 +27,7 @@ type PermissionsDataSourceModel struct {
 }
 
 type PermissionItem struct {
+	ID          types.Int64  `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 }
@@ -47,6 +49,10 @@ func (d *PermissionsDataSource) Schema(ctx context.Context, req datasource.Schem
 				Description: "List of available permissions.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"id": schema.Int64Attribute{
+							Computed:    true,
+							Description: "Permission ID, as accepted by rms_role.permission_ids. Null if the API does not report one.",
+						},
 						"name": schema.StringAttribute{
 							Computed:    true,
 							Description: "Permission name/identifier.",
@@ -84,17 +90,27 @@ func (d *PermissionsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	var result []map[string]interface{}
 
-	if err := d.client.Get(ctx, "/permissions", nil, &result); err != nil {
+	// The permission catalogue is larger than the limit of 100 the other list
+	// data sources use, so request a limit that covers it in one page.
+	if err := d.client.Get(ctx, "/permissions", map[string]string{"limit": "1000"}, &result); err != nil {
 		resp.Diagnostics.AddError("Error reading permissions", fmt.Sprintf("Could not read permissions: %s", err))
 		return
 	}
 
-	var permissions []PermissionItem
-	for _, p := range result {
+	permissions := make([]PermissionItem, 0, len(result))
+	for i, p := range result {
 		name, ok := p["name"].(string)
 		if !ok {
-			resp.Diagnostics.AddError("Error parsing permission name", "Could not parse name from API response")
+			resp.Diagnostics.AddError(
+				"Error parsing permission name",
+				fmt.Sprintf("Permission at index %d has no string name (got %T: %v)", i, p["name"], p["name"]),
+			)
 			return
+		}
+
+		id := types.Int64Null()
+		if raw, ok := p["id"].(float64); ok {
+			id = types.Int64Value(int64(raw))
 		}
 
 		description := ""
@@ -103,10 +119,17 @@ func (d *PermissionsDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 
 		permissions = append(permissions, PermissionItem{
+			ID:          id,
 			Name:        types.StringValue(name),
 			Description: types.StringValue(description),
 		})
 	}
+
+	// The API does not guarantee a stable order, but list attributes are
+	// addressed by index in state.
+	sort.Slice(permissions, func(i, j int) bool {
+		return permissions[i].Name.ValueString() < permissions[j].Name.ValueString()
+	})
 
 	data.ID = types.StringValue("permissions-data-source")
 	data.Permissions = permissions

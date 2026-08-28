@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -100,22 +101,28 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	var result []map[string]interface{}
 
-	if err := d.client.Get(ctx, "/roles", nil, &result); err != nil {
+	if err := d.client.Get(ctx, "/roles", map[string]string{"limit": "1000"}, &result); err != nil {
 		resp.Diagnostics.AddError("Error reading roles", fmt.Sprintf("Could not read roles: %s", err))
 		return
 	}
 
-	var roles []RoleDataItem
-	for _, r := range result {
+	roles := make([]RoleDataItem, 0, len(result))
+	for i, r := range result {
 		id, ok := r["id"].(float64)
 		if !ok {
-			resp.Diagnostics.AddError("Error parsing role ID", "Could not parse id from API response")
+			resp.Diagnostics.AddError(
+				"Error parsing role ID",
+				fmt.Sprintf("Role at index %d has no numeric id (got %T: %v)", i, r["id"], r["id"]),
+			)
 			return
 		}
 
 		title, ok := r["title"].(string)
 		if !ok {
-			resp.Diagnostics.AddError("Error parsing role title", "Could not parse title from API response")
+			resp.Diagnostics.AddError(
+				"Error parsing role title",
+				fmt.Sprintf("Role %d has no string title (got %T: %v)", int64(id), r["title"], r["title"]),
+			)
 			return
 		}
 
@@ -124,19 +131,16 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			description = desc
 		}
 
-		companyID := int64(0)
-		if cid, ok := r["company_id"].(float64); ok {
-			companyID = int64(cid)
+		companyID, err := parseRoleCompanyID(r["company_id"])
+		if err != nil {
+			resp.Diagnostics.AddError("Error parsing role company ID", fmt.Sprintf("Role %d: %s", int64(id), err))
+			return
 		}
 
-		var permissionIDs []int64
-		if permIDsRaw, ok := r["permission_id"].([]interface{}); ok {
-			permissionIDs = make([]int64, 0, len(permIDsRaw))
-			for _, pid := range permIDsRaw {
-				if f, ok := pid.(float64); ok {
-					permissionIDs = append(permissionIDs, int64(f))
-				}
-			}
+		permissionIDs, err := parseRolePermissionIDs(r["permission_id"])
+		if err != nil {
+			resp.Diagnostics.AddError("Error parsing role permissions", fmt.Sprintf("Role %d: %s", int64(id), err))
+			return
 		}
 
 		permSet, diag := types.SetValueFrom(ctx, types.Int64Type, permissionIDs)
@@ -149,10 +153,16 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			ID:            types.Int64Value(int64(id)),
 			Title:         types.StringValue(title),
 			Description:   types.StringValue(description),
-			CompanyID:     types.Int64Value(companyID),
+			CompanyID:     companyID,
 			PermissionIDs: permSet,
 		})
 	}
+
+	// The API does not guarantee a stable order, but list attributes are
+	// addressed by index in state.
+	sort.Slice(roles, func(i, j int) bool {
+		return roles[i].ID.ValueInt64() < roles[j].ID.ValueInt64()
+	})
 
 	data.ID = types.StringValue("roles-data-source")
 	data.Roles = roles

@@ -82,7 +82,7 @@ golangci-lint run
 
 ### 5. Update Documentation
 
-- Update resource/data source documentation in `website/docs/`
+- Regenerate resource/data source documentation with `make docs`
 - Add examples in `examples/`
 - Update README.md if needed
 

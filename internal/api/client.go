@@ -171,7 +171,14 @@ func (c *Client) handleErrorResponse(resp *http.Response) error {
 	return fmt.Errorf("API error %d: %s", resp.StatusCode, resp.Status)
 }
 
-// decodeResponse decodes JSON response into target struct
+// decodeResponse decodes JSON response into target struct.
+//
+// RMS wraps most payloads in an envelope carrying a boolean "success" field
+// alongside "data", "errors" and "meta". When both "success" and "data" are
+// present the contents of "data" are decoded into v. Bodies without a
+// "success" field are decoded as-is, which keeps endpoints that use "data" as
+// their own payload format (alerts-configurations, email-configurations)
+// working unchanged.
 func (c *Client) decodeResponse(resp *http.Response, v interface{}) error {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -182,7 +189,28 @@ func (c *Client) decodeResponse(resp *http.Response, v interface{}) error {
 		return nil
 	}
 
+	if payload, ok := unwrapEnvelope(body); ok {
+		return json.Unmarshal(payload, v)
+	}
+
 	return json.Unmarshal(body, v)
+}
+
+// unwrapEnvelope returns the "data" member of an RMS response envelope. It
+// reports false for any body that is not a JSON object carrying both
+// "success" and "data", leaving the caller to decode the body unchanged.
+func unwrapEnvelope(body []byte) (json.RawMessage, bool) {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return nil, false
+	}
+
+	if _, ok := envelope["success"]; !ok {
+		return nil, false
+	}
+
+	data, ok := envelope["data"]
+	return data, ok
 }
 
 // Get performs a GET request

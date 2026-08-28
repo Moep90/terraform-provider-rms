@@ -35,7 +35,7 @@ terraform {
   required_version = ">= 1.5.0"
 
   required_providers {
-    teltonika-rms = {
+    rms = {
       source  = "teltonika-rms/teltonika-rms"
       version = ">= 0.1.0"
     }
@@ -65,7 +65,7 @@ terraform {
 Configure the provider with your Teltonika RMS API token:
 
 ```hcl
-provider "teltonika-rms" {
+provider "rms" {
   token = var.teltonika_token
   # Optional: base_url defaults to https://rms.teltonika-networks.com/api
   # base_url = "https://rms.teltonika-networks.com/api"
@@ -150,6 +150,12 @@ data "rms_tags" "all" {}
 - `rms_invitation` - Manages a Teltonika RMS User Invitation
 - `rms_task` - Manages a Teltonika RMS Task (commands/configurations for devices)
 - `rms_task_group` - Manages a Teltonika RMS Task Group (organizes related tasks)
+- `rms_role` - Manages an access control role
+- `rms_device_tags` - Manages the tag assignments of a device
+- `rms_alert_configuration` - Manages a device alert configuration
+- `rms_email_configuration` - Manages an SMTP email configuration
+- `rms_vpn_hub` - Manages a VPN hub
+- `rms_vpn_hub_route` - Manages a VPN hub route
 
 ## Data Sources
 
@@ -160,6 +166,10 @@ data "rms_tags" "all" {}
 - `rms_tags` - Retrieves all tags
 - `rms_users` - Retrieves all users
 - `rms_invitations` - Retrieves all invitations
+- `rms_permissions` - Retrieves all available permissions
+- `rms_roles` - Retrieves all roles
+- `rms_device_esim_bootstrap` - Retrieves eSIM bootstrap details for a device
+- `rms_devices_export` - Retrieves all devices as CSV
 
 ## Development
 

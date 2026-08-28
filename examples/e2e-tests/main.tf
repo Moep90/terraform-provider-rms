@@ -26,14 +26,14 @@ variable "rms_base_url" {
 
 # Email Configuration
 resource "rms_email_configuration" "main" {
-  company_id  = 123456
-  from_name   = "RMS Notifications"
-  from_email  = "notifications@example.com"
-  smtp_host   = "smtp.example.com"
-  smtp_port   = 587
-  username    = "notifications@example.com"
-  password    = "smtp_password_here"
-  use_tls     = true
+  company_id = 123456
+  from_name  = "RMS Notifications"
+  from_email = "notifications@example.com"
+  smtp_host  = "smtp.example.com"
+  smtp_port  = 587
+  username   = "notifications@example.com"
+  password   = "smtp_password_here"
+  use_tls    = true
 }
 
 # Alert Configuration
@@ -57,12 +57,12 @@ resource "rms_role" "admin" {
 
 # VPN Hub
 resource "rms_vpn_hub" "main" {
-  name         = "Production VPN"
-  description  = "Main VPN hub for production devices"
-  company_id   = 123456
-  hub_zone     = "frankfurt-1"
-  vpn_type     = "tun"
-  tag_ids      = [10, 20]
+  name        = "Production VPN"
+  description = "Main VPN hub for production devices"
+  company_id  = 123456
+  hub_zone    = "frankfurt-1"
+  vpn_type    = "tun"
+  tag_ids     = [10, 20]
 }
 
 # VPN Hub Route

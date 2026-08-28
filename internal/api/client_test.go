@@ -329,3 +329,58 @@ func TestClientRetryRespectsContextCancellation(t *testing.T) {
 	// Should have made at least one attempt
 	assert.GreaterOrEqual(t, attempts, 1)
 }
+
+func TestClientGetResponseEnvelope(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want []map[string]interface{}
+	}{
+		{
+			name: "envelope with success and data",
+			body: `{"success":true,"data":[{"id":1}],"errors":[],"meta":{"total":1}}`,
+			want: []map[string]interface{}{{"id": float64(1)}},
+		},
+		{
+			name: "bare top level array",
+			body: `[{"id":1}]`,
+			want: []map[string]interface{}{{"id": float64(1)}},
+		},
+		{
+			name: "empty envelope data",
+			body: `{"success":true,"data":[]}`,
+			want: []map[string]interface{}{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+
+			client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
+
+			var result []map[string]interface{}
+			require.NoError(t, client.Get(context.Background(), "/test", nil, &result))
+			assert.Equal(t, tt.want, result)
+		})
+	}
+}
+
+// The alerts-configurations and email-configurations endpoints use "data" as
+// their own payload format, without a "success" field. Those bodies must be
+// decoded unchanged rather than unwrapped.
+func TestClientGetDataWithoutSuccessIsNotUnwrapped(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"data":[{"id":1}]}`))
+	}))
+	defer server.Close()
+
+	client := NewClientWithOptions(context.Background(), "test-token", server.URL, Timeout, MaxRetries, "test")
+
+	var result map[string]interface{}
+	require.NoError(t, client.Get(context.Background(), "/test", nil, &result))
+	assert.Equal(t, []interface{}{map[string]interface{}{"id": float64(1)}}, result["data"])
+}

@@ -2,18 +2,31 @@ package provider
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
 // TestResourceTypeSafety verifies resources handle type assertion failures gracefully
 func TestResourceTypeSafety(t *testing.T) {
-	files := []string{
-		"../../internal/provider/resource_company.go",
-		"../../internal/provider/resource_device.go",
-		"../../internal/provider/resource_tag.go",
-		"../../internal/provider/resource_user.go",
-		"../../internal/provider/resource_invitation.go",
+	// Cover every resource and data source rather than a hand-maintained list,
+	// which silently excluded each newly added file.
+	var files []string
+	for _, pattern := range []string{"resource_*.go", "datasource_*.go"} {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			t.Fatalf("Failed to glob %s: %s", pattern, err)
+		}
+		for _, match := range matches {
+			if strings.HasSuffix(match, "_test.go") {
+				continue
+			}
+			files = append(files, match)
+		}
+	}
+
+	if len(files) == 0 {
+		t.Fatal("No provider files matched; the type safety check would pass vacuously")
 	}
 
 	for _, file := range files {

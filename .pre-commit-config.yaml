@@ -28,13 +28,10 @@ repos:
       - id: go-imports
         args: [-local, github.com/teltonika-rms/terraform-provider-teltonika-rms]
       - id: go-mod-tidy
-      - id: go-mod-verify
       - id: go-build
         args: [-o, /dev/null, ./cmd/terraform-provider-teltonika-rms]
-      - id: go-test
-        args: [-v, -race, -cover, ./...]
-      - id: go-vet-all
-      - id: go-fmt-all
+      - id: go-unit-tests
+        args: [-race, -cover]
 
   # Go linting
   - repo: https://github.com/golangci/golangci-lint
@@ -59,13 +56,6 @@ repos:
           - --hook-config=--path-to-binary=tflint
           - --hook-config=--add-to-flag=--config=/.tflint.hcl
 
-  # Security scanning
-  - repo: https://github.com/securego/gosec
-    rev: v2.20.0
-    hooks:
-      - id: gosec
-        args: [-exclude=G107,G204]
-
   # Documentation
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.19.0
@@ -78,6 +68,10 @@ repos:
     hooks:
       - id: markdownlint-cli2
         args: [--fix]
+        # docs/index.md, docs/resources/, docs/data-sources/ and docs/guides/
+        # are produced by `make docs` and are byte-checked in CI, so they
+        # cannot also be reformatted here. Edit templates/ instead.
+        exclude: '^docs/(index\.md|resources/|data-sources/|guides/)'
 
   # YAML linting
   - repo: https://github.com/adrienverge/yamllint

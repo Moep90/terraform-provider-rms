@@ -1,7 +1,7 @@
 resource "rms_vpn_hub" "main" {
-  name         = "Production VPN"
-  company_id   = 123456
-  hub_zone     = "frankfurt-1"
+  name       = "Production VPN"
+  company_id = 123456
+  hub_zone   = "frankfurt-1"
 }
 
 resource "rms_vpn_hub_route" "network_a" {

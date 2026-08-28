@@ -43,6 +43,9 @@ func (p *TeltonikaProvider) Metadata(ctx context.Context, req provider.MetadataR
 // Schema defines the provider-level schema for configuration data.
 func (p *TeltonikaProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Manage Teltonika RMS companies, devices, users, roles, tasks and VPN hubs. " +
+			"Configure the provider with an API token, either inline or via the " +
+			"TELTONIKA_RMS_TOKEN environment variable.",
 		Attributes: map[string]schema.Attribute{
 			"token": schema.StringAttribute{
 				Optional:    true,

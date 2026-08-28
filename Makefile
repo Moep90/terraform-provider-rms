@@ -2,6 +2,7 @@
 
 # Binary name
 BINARY_NAME=terraform-provider-teltonika-rms
+TFPLUGINDOCS_VERSION=v0.25.0
 BIN_DIR=bin
 
 # Go parameters
@@ -25,7 +26,7 @@ CMD_DIR=cmd/terraform-provider-teltonika-rms
 INTERNAL_DIR=internal
 TEST_DIR=tests
 
-.PHONY: all build test lint fmt clean help install-tools pre-commit
+.PHONY: all build test lint fmt clean help install-tools pre-commit docs
 
 # Default target
 all: build
@@ -122,9 +123,23 @@ install: build
 	cp $(BIN_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)/
 
 ## Generate documentation
+# tfplugindocs builds the provider from the repository root, but package main
+# lives in $(CMD_DIR), so export the schema via Terraform first and hand
+# tfplugindocs the JSON. The throwaway workspace uses the hashicorp/ namespace
+# because tfplugindocs looks the provider up under that key.
 docs:
 	@echo "Generating provider documentation..."
-	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+	$(eval DOCS_TMP := $(shell mktemp -d))
+	mkdir -p $(DOCS_TMP)/plugins/registry.terraform.io/hashicorp/rms/0.0.1/$(shell go env GOOS)_$(shell go env GOARCH)
+	$(GOBUILD) -o $(DOCS_TMP)/plugins/registry.terraform.io/hashicorp/rms/0.0.1/$(shell go env GOOS)_$(shell go env GOARCH)/terraform-provider-rms_v0.0.1 ./$(CMD_DIR)
+	printf 'terraform {\n  required_providers {\n    rms = {\n      source  = "hashicorp/rms"\n      version = "0.0.1"\n    }\n  }\n}\n' > $(DOCS_TMP)/main.tf
+	cd $(DOCS_TMP) && terraform init -plugin-dir=$(DOCS_TMP)/plugins -input=false > /dev/null
+	cd $(DOCS_TMP) && terraform providers schema -json > $(DOCS_TMP)/schema.json
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(TFPLUGINDOCS_VERSION) generate \
+		--providers-schema $(DOCS_TMP)/schema.json \
+		--provider-name rms \
+		--rendered-provider-name "Teltonika RMS"
+	rm -rf $(DOCS_TMP)
 
 ## Release (creates tag and triggers CI)
 release:

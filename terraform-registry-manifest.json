@@ -1,7 +1,6 @@
 {
-  "version": "v0.1.0",
-  "protocols": [
-    "6.0"
-  ],
-  "host": "registry.terraform.io"
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["6.0"]
+  }
 }
