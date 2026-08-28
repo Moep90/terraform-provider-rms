@@ -1,0 +1,22 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+terraform.tfvars
+
+# Terraform directories
+.terraform/
+.terraform.lock.hcl
+
+# Crash log files
+crash.log
+crash.*.log
+
+# State backup files
+*.tfstate.bak
+
+# Variable override files (keep sensitive values out of git)
+*override.tf
+*override.tf.json
+*_override.tf
+*_override.tf.json
