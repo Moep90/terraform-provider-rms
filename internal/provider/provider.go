@@ -150,6 +150,7 @@ func (p *TeltonikaProvider) Resources(_ context.Context) []func() resource.Resou
 		NewInvitationResource,
 		NewTaskResource,
 		NewTaskGroupResource,
+		NewVPNHubResource,
 	}
 }
 
