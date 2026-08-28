@@ -72,35 +72,16 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 }
 
 func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data UserResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	createReq := map[string]interface{}{
-		"username":   data.Username.ValueString(),
-		"email":      data.Email.ValueString(),
-		"role":       data.Role.ValueString(),
-		"company_id": data.CompanyID.ValueInt64(),
-	}
-
-	var result map[string]interface{}
-	if err := r.client.Post(ctx, "/users", createReq, &result); err != nil {
-		resp.Diagnostics.AddError("Error creating user", fmt.Sprintf("Could not create user: %s", err))
-		return
-	}
-
-	id, ok := result["id"].(float64)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error parsing ID",
-			"Could not parse ID from API response",
-		)
-		return
-	}
-	data.ID = types.Int64Value(int64(id))
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Verified against the live RMS API: POST /users returns 405 BAD_REQUEST_METHOD.
+	// Creating this resource cannot succeed, so fail here rather than issuing a
+	// request whose failure would surface as a confusing parse error, or worse,
+	// leave an object behind that Terraform never records.
+	resp.Diagnostics.AddError(
+		"rms_user cannot be created",
+		"The RMS v3 API does not allow POST on /users. Users are created by invitation, so use the rms_invitation resource instead. "+
+			"The provider fails here deliberately. Use `terraform import` to manage "+
+			"an object that already exists.",
+	)
 }
 
 func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {

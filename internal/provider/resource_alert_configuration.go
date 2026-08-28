@@ -124,73 +124,16 @@ func (r *AlertConfigurationResource) Schema(ctx context.Context, req resource.Sc
 }
 
 func (r *AlertConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AlertConfigurationResourceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	alertData := map[string]interface{}{
-		"device_id":     plan.DeviceID.ValueInt64(),
-		"alert_type_id": plan.AlertTypeID.ValueInt64(),
-	}
-
-	if !plan.AlertSubtypeID.IsNull() {
-		alertData["alert_subtype_id"] = plan.AlertSubtypeID.ValueInt64()
-	}
-	if !plan.Action.IsNull() {
-		alertData["action"] = plan.Action.ValueInt64()
-	}
-	if !plan.Subject.IsNull() {
-		alertData["subject"] = plan.Subject.ValueString()
-	}
-	if !plan.Message.IsNull() {
-		alertData["message"] = plan.Message.ValueString()
-	}
-	if !plan.Email.IsNull() {
-		alertData["email"] = plan.Email.ValueString()
-	}
-	if !plan.SMTPConfigID.IsNull() {
-		alertData["smtp_config_id"] = plan.SMTPConfigID.ValueInt64()
-	}
-	if !plan.DeliveryRetry.IsNull() {
-		alertData["delivery_retry"] = plan.DeliveryRetry.ValueBool()
-	}
-	if !plan.RetryInterval.IsNull() {
-		alertData["retry_interval"] = plan.RetryInterval.ValueInt64()
-	}
-	if !plan.RetryCount.IsNull() {
-		alertData["retry_count"] = plan.RetryCount.ValueInt64()
-	}
-	if !plan.RedundancyInterval.IsNull() {
-		alertData["redundancy_interval"] = plan.RedundancyInterval.ValueInt64()
-	}
-	if !plan.DataLimit.IsNull() {
-		alertData["data_limit"] = plan.DataLimit.ValueInt64()
-	}
-	if !plan.SIM.IsNull() {
-		alertData["sim"] = plan.SIM.ValueInt64()
-	}
-
-	createReq := map[string]interface{}{
-		"data": []map[string]interface{}{alertData},
-	}
-
-	var result map[string]interface{}
-	if err := r.client.Post(ctx, "/alerts-configurations", createReq, &result); err != nil {
-		resp.Diagnostics.AddError("Error creating alert configuration", fmt.Sprintf("Could not create alert configuration: %s", err))
-		return
-	}
-
-	id, ok := result["id"].(float64)
-	if !ok {
-		resp.Diagnostics.AddError("Error parsing ID", "Could not parse ID from API response")
-		return
-	}
-	plan.ID = types.Int64Value(int64(id))
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// Verified against the live RMS API: POST /alerts-configurations returns 405 BAD_REQUEST_METHOD.
+	// Creating this resource cannot succeed, so fail here rather than issuing a
+	// request whose failure would surface as a confusing parse error, or worse,
+	// leave an object behind that Terraform never records.
+	resp.Diagnostics.AddError(
+		"rms_alert_configuration cannot be created",
+		"The RMS v3 API does not allow POST on /alerts-configurations. "+
+			"The provider fails here deliberately. Use `terraform import` to manage "+
+			"an object that already exists.",
+	)
 }
 
 func (r *AlertConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {

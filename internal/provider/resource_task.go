@@ -126,79 +126,16 @@ func (r *TaskResource) Configure(ctx context.Context, req resource.ConfigureRequ
 }
 
 func (r *TaskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data TaskResourceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	createReq := map[string]interface{}{
-		"name":       data.Name.ValueString(),
-		"task_type":  data.TaskType.ValueString(),
-		"company_id": data.CompanyID.ValueInt64(),
-	}
-
-	if !data.Description.IsNull() {
-		createReq["description"] = data.Description.ValueString()
-	}
-	if !data.Payload.IsNull() {
-		createReq["payload"] = data.Payload.ValueString()
-	}
-	if !data.ScheduledAt.IsNull() {
-		createReq["scheduled_at"] = data.ScheduledAt.ValueString()
-	}
-	if !data.TaskGroupID.IsNull() {
-		createReq["task_group_id"] = data.TaskGroupID.ValueInt64()
-	}
-
-	var result map[string]interface{}
-	if err := r.client.Post(ctx, "/tasks", createReq, &result); err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating task",
-			fmt.Sprintf("Could not create task: %s", err),
-		)
-		return
-	}
-
-	id, ok := result["id"].(float64)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error parsing task ID",
-			"Could not parse task ID from API response",
-		)
-		return
-	}
-	data.ID = types.Int64Value(int64(id))
-
-	if name, ok := result["name"].(string); ok {
-		data.Name = types.StringValue(name)
-	}
-	if description, ok := result["description"].(string); ok {
-		data.Description = types.StringValue(description)
-	} else {
-		data.Description = types.StringValue("")
-	}
-	if taskType, ok := result["task_type"].(string); ok {
-		data.TaskType = types.StringValue(taskType)
-	}
-	if status, ok := result["status"].(string); ok {
-		data.Status = types.StringValue(status)
-	} else {
-		data.Status = types.StringValue("pending")
-	}
-	if createdAt, ok := result["created_at"].(string); ok {
-		data.CreatedAt = types.StringValue(createdAt)
-	} else {
-		data.CreatedAt = types.StringValue("2024-01-01T00:00:00Z")
-	}
-	if updatedAt, ok := result["updated_at"].(string); ok {
-		data.UpdatedAt = types.StringValue(updatedAt)
-	} else {
-		data.UpdatedAt = types.StringValue("2024-01-01T00:00:00Z")
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Verified against the live RMS API: POST /tasks returns 404 RESOURCE_NOT_FOUND.
+	// Creating this resource cannot succeed, so fail here rather than issuing a
+	// request whose failure would surface as a confusing parse error, or worse,
+	// leave an object behind that Terraform never records.
+	resp.Diagnostics.AddError(
+		"rms_task cannot be created",
+		"The RMS v3 API exposes no /tasks endpoint. "+
+			"The provider fails here deliberately. Use `terraform import` to manage "+
+			"an object that already exists.",
+	)
 }
 
 func (r *TaskResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
