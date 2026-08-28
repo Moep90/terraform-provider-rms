@@ -60,6 +60,7 @@ provider "rms" {
 
 resource "rms_company" "test" {
   company_name = %q
+  parent_id    = %s
 }
-`, token, baseURL, name)
+`, token, baseURL, name, e2eParentCompanyID())
 }

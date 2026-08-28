@@ -53,6 +53,7 @@ provider "rms" {
 
 resource "rms_company" "test" {
   company_name = "E2E Tag Test Company"
+  parent_id    = %s
 }
 
 resource "rms_tag" "test" {
@@ -60,7 +61,7 @@ resource "rms_tag" "test" {
   color      = "#00ff00"
   company_id = rms_company.test.id
 }
-`, token, baseURL)
+`, token, baseURL, e2eParentCompanyID())
 }
 
 func testAccTagE2EConfigUpdated(baseURL, token string) string {
@@ -72,6 +73,7 @@ provider "rms" {
 
 resource "rms_company" "test" {
   company_name = "E2E Tag Test Company"
+  parent_id    = %s
 }
 
 resource "rms_tag" "test" {
@@ -79,5 +81,5 @@ resource "rms_tag" "test" {
   color      = "#0000ff"
   company_id = rms_company.test.id
 }
-`, token, baseURL)
+`, token, baseURL, e2eParentCompanyID())
 }

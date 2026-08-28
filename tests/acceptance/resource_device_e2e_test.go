@@ -47,6 +47,7 @@ provider "rms" {
 
 resource "rms_company" "test" {
   company_name = "E2E Device Test Company"
+  parent_id    = %s
 }
 
 resource "rms_device" "test" {
@@ -56,5 +57,5 @@ resource "rms_device" "test" {
   company_id       = rms_company.test.id
   auto_credit_enable = true
 }
-`, token, baseURL)
+`, token, baseURL, e2eParentCompanyID())
 }

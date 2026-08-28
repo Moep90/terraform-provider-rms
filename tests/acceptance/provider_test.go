@@ -42,3 +42,13 @@ func testAccPreCheck(t *testing.T) {
 func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
+
+// e2eParentCompanyID returns the company the E2E resources should be created
+// under. RMS requires parent_id on company creation, and the value is tenant
+// specific, so it comes from the environment rather than the repository.
+func e2eParentCompanyID() string {
+	if v := os.Getenv("RMS_PARENT_COMPANY_ID"); v != "" {
+		return v
+	}
+	return "0"
+}

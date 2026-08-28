@@ -55,6 +55,7 @@ provider "rms" {
 
 resource "rms_company" "test" {
   company_name = "E2E User Test Company"
+  parent_id    = %s
 }
 
 resource "rms_user" "test" {
@@ -63,7 +64,7 @@ resource "rms_user" "test" {
   role       = "viewer"
   company_id = rms_company.test.id
 }
-`, token, baseURL)
+`, token, baseURL, e2eParentCompanyID())
 }
 
 func testAccUserE2EConfigUpdated(baseURL, token string) string {
@@ -75,6 +76,7 @@ provider "rms" {
 
 resource "rms_company" "test" {
   company_name = "E2E User Test Company"
+  parent_id    = %s
 }
 
 resource "rms_user" "test" {
@@ -83,5 +85,5 @@ resource "rms_user" "test" {
   role       = "admin"
   company_id = rms_company.test.id
 }
-`, token, baseURL)
+`, token, baseURL, e2eParentCompanyID())
 }

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -161,10 +162,29 @@ func (c *Client) handleErrorResponse(resp *http.Response) error {
 		return fmt.Errorf("API error %d: %s", resp.StatusCode, resp.Status)
 	}
 
-	var errorResp map[string]interface{}
+	var errorResp struct {
+		Errors []struct {
+			Code    string `json:"code"`
+			Source  string `json:"source"`
+			Message string `json:"message"`
+		} `json:"errors"`
+		Error string `json:"error"`
+	}
 	if err := json.Unmarshal(body, &errorResp); err == nil {
-		if errMsg, ok := errorResp["error"].(string); ok {
-			return fmt.Errorf("API error %d: %s", resp.StatusCode, errMsg)
+		if len(errorResp.Errors) > 0 {
+			parts := make([]string, 0, len(errorResp.Errors))
+			for _, e := range errorResp.Errors {
+				switch {
+				case e.Source != "":
+					parts = append(parts, fmt.Sprintf("%s: %s (%s)", e.Source, e.Message, e.Code))
+				default:
+					parts = append(parts, fmt.Sprintf("%s (%s)", e.Message, e.Code))
+				}
+			}
+			return fmt.Errorf("API error %d: %s", resp.StatusCode, strings.Join(parts, "; "))
+		}
+		if errorResp.Error != "" {
+			return fmt.Errorf("API error %d: %s", resp.StatusCode, errorResp.Error)
 		}
 	}
 

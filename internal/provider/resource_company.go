@@ -60,8 +60,8 @@ func (r *CompanyResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: "The name of the company.",
 			},
 			"parent_id": schema.Int64Attribute{
-				Optional:    true,
-				Description: "The parent company ID. If set, this company becomes a subsidiary of the parent.",
+				Required:    true,
+				Description: "The parent company ID. RMS rejects a create without it; use the ID of the company the API token belongs to for a top level company.",
 			},
 			"device_count": schema.Int64Attribute{
 				Computed:    true,
@@ -89,10 +89,10 @@ func (r *CompanyResource) Create(ctx context.Context, req resource.CreateRequest
 		"name": data.CompanyName.ValueString(),
 	}
 
+	// parent_id 0 is rejected with NOT_FOUND; omitting it lets RMS place the
+	// company under the account the token belongs to.
 	if !data.ParentID.IsNull() {
 		createReq["parent_id"] = data.ParentID.ValueInt64()
-	} else {
-		createReq["parent_id"] = 0
 	}
 
 	var result map[string]interface{}
