@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Moep90/terraform-provider-rms/internal/api"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/teltonika-rms/terraform-provider-teltonika-rms/internal/api"
 )
 
 var _ datasource.DataSource = &TagsDataSource{}

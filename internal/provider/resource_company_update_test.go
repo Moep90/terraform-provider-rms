@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Moep90/terraform-provider-rms/internal/api"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/teltonika-rms/terraform-provider-teltonika-rms/internal/api"
 )
 
 func TestCompanyResourceUpdatePopulatesComputed(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/teltonika-rms/terraform-provider-teltonika-rms
+module github.com/Moep90/terraform-provider-rms
 
 go 1.25.8
 

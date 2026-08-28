@@ -15,7 +15,7 @@ Manage Teltonika RMS companies, devices, users, roles, tasks and VPN hubs. Confi
 terraform {
   required_providers {
     rms = {
-      source = "teltonika-rms/teltonika-rms"
+      source = "moep90/rms"
     }
   }
 }

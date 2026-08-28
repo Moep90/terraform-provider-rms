@@ -9,7 +9,7 @@
     "dependencies"
   ],
   "assignees": [
-    "teltonika-rms"
+    "Moep90"
   ],
   "rebaseWhen": "behind-base-branch",
   "prHourlyLimit": 2,

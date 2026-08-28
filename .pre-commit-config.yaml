@@ -26,10 +26,10 @@ repos:
       - id: go-fmt
       - id: go-vet
       - id: go-imports
-        args: [-local, github.com/teltonika-rms/terraform-provider-teltonika-rms]
+        args: [-local, github.com/Moep90/terraform-provider-rms]
       - id: go-mod-tidy
       - id: go-build
-        args: [-o, /dev/null, ./cmd/terraform-provider-teltonika-rms]
+        args: [-o, /dev/null, ./cmd/terraform-provider-rms]
       - id: go-unit-tests
         args: [-race, -cover]
 

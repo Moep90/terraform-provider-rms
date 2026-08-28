@@ -18,4 +18,4 @@
 *.tfstate.lock.info binary
 
 # Generated files
-terraform-provider-teltonika-rms binary
+terraform-provider-rms binary

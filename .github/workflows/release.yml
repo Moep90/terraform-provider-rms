@@ -39,5 +39,5 @@ jobs:
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-provider-teltonika-rms
+          name: terraform-provider-rms
           path: dist/

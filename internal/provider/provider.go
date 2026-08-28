@@ -5,13 +5,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/Moep90/terraform-provider-rms/internal/api"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/teltonika-rms/terraform-provider-teltonika-rms/internal/api"
 )
 
 // Ensure TeltonikaProvider satisfies various provider interfaces.

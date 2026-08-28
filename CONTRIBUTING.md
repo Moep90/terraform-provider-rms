@@ -19,8 +19,8 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to create a wel
 
 ```bash
 # Fork the repository
-git clone https://github.com/teltonika-rms/terraform-provider-teltonika-rms.git
-cd terraform-provider-teltonika-rms
+git clone https://github.com/Moep90/terraform-provider-rms.git
+cd terraform-provider-rms
 
 # Install dependencies
 go mod tidy
@@ -29,7 +29,7 @@ go mod tidy
 go test -v ./...
 
 # Build the provider
-go build -o terraform-provider-teltonika-rms ./cmd/terraform-provider-teltonika-rms
+go build -o terraform-provider-rms ./cmd/terraform-provider-rms
 ```
 
 ## Development Workflow

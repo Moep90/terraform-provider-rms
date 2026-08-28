@@ -1,7 +1,7 @@
 # Terraform Provider Teltonika RMS Makefile
 
 # Binary name
-BINARY_NAME=terraform-provider-teltonika-rms
+BINARY_NAME=terraform-provider-rms
 TFPLUGINDOCS_VERSION=v0.25.0
 BIN_DIR=bin
 
@@ -22,7 +22,7 @@ BUILD_TIME=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
 LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT)"
 
 # Directories
-CMD_DIR=cmd/terraform-provider-teltonika-rms
+CMD_DIR=cmd/terraform-provider-rms
 INTERNAL_DIR=internal
 TEST_DIR=tests
 
@@ -119,8 +119,8 @@ pre-commit:
 ## Install provider locally
 install: build
 	@echo "Installing provider locally..."
-	mkdir -p ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)
-	cp $(BIN_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/localhost/teltonika-rms/teltonika-rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)/
+	mkdir -p ~/.terraform.d/plugins/localhost/moep90/rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)
+	cp $(BIN_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/localhost/moep90/rms/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)/
 
 ## Generate documentation
 # tfplugindocs builds the provider from the repository root, but package main

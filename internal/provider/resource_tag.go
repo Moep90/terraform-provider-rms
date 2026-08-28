@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Moep90/terraform-provider-rms/internal/api"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/teltonika-rms/terraform-provider-teltonika-rms/internal/api"
 )
 
 var _ resource.Resource = &TagResource{}

@@ -4,14 +4,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Moep90/terraform-provider-rms/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/teltonika-rms/terraform-provider-teltonika-rms/internal/provider"
 )
 
 const (
 	// Provider address for testing
-	ProviderAddr = "registry.terraform.io/teltonika-rms/teltonika-rms"
+	ProviderAddr = "registry.terraform.io/moep90/rms"
 )
 
 // ProtoV6ProviderFactories are used to create a test provider

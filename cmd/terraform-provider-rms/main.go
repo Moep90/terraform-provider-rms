@@ -6,8 +6,8 @@ import (
 	"flag"
 	"log"
 
+	"github.com/Moep90/terraform-provider-rms/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/teltonika-rms/terraform-provider-teltonika-rms/internal/provider"
 )
 
 //go:generate terraform fmt -recursive ./examples/
@@ -26,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/teltonika-rms/teltonika-rms",
+		Address: "registry.terraform.io/moep90/teltonika-rms",
 		Debug:   debug,
 	}
 

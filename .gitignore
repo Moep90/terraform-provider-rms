@@ -4,8 +4,8 @@
 *.dll
 *.so
 *.dylib
-terraform-provider-teltonika-rms
-terraform-provider-teltonika-rms_*.zip
+terraform-provider-rms
+terraform-provider-rms_*.zip
 
 # Test binary, built with `go test -c`
 *.test

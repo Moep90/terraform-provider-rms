@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     rms = {
-      source  = "registry.example.com/teltonika-rms/rms"
+      source  = "registry.example.com/moep90/rms"
       version = ">= 0.1.0"
     }
   }

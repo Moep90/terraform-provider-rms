@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     rms = {
-      source = "teltonika-rms/teltonika-rms"
+      source = "moep90/rms"
     }
   }
 }
