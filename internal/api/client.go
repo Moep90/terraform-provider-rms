@@ -258,3 +258,77 @@ func (c *Client) Delete(ctx context.Context, path string, v interface{}) error {
 
 	return c.do(ctx, req, v)
 }
+
+// GetRaw performs a GET request and returns the raw response body as bytes
+func (c *Client) GetRaw(ctx context.Context, path string, params map[string]string) ([]byte, error) {
+	reqURL := c.baseURL + path
+
+	if len(params) > 0 {
+		q := url.Values{}
+		for k, v := range params {
+			q.Add(k, v)
+		}
+		reqURL += "?" + q.Encode()
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.setRequestHeaders(req)
+
+	var lastErr error
+	for attempt := 0; attempt < c.maxRetries; attempt++ {
+		if attempt > 0 {
+			tflog.Warn(ctx, "Retrying request", map[string]interface{}{
+				"attempt": attempt + 1,
+				"delay":   RetryDelay.String(),
+			})
+			timer := time.NewTimer(RetryDelay * time.Duration(attempt))
+			select {
+			case <-timer.C:
+			case <-ctx.Done():
+				timer.Stop()
+				return nil, ctx.Err()
+			}
+		}
+
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		if resp.StatusCode >= 500 {
+			_ = resp.Body.Close()
+			lastErr = fmt.Errorf("status %d", resp.StatusCode)
+			continue
+		}
+
+		if resp.StatusCode == http.StatusUnauthorized {
+			_ = resp.Body.Close()
+			return nil, fmt.Errorf("unauthorized: invalid or expired token")
+		}
+
+		if resp.StatusCode == http.StatusForbidden {
+			_ = resp.Body.Close()
+			return nil, fmt.Errorf("forbidden: insufficient permissions")
+		}
+
+		if resp.StatusCode >= 400 {
+			err := c.handleErrorResponse(resp)
+			_ = resp.Body.Close()
+			return nil, err
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+		return body, nil
+	}
+
+	return nil, fmt.Errorf("request failed after %d attempts: %w", c.maxRetries, lastErr)
+}

@@ -129,6 +129,7 @@ func (p *TeltonikaProvider) DataSources(_ context.Context) []func() datasource.D
 		NewDevicesDataSource,
 		NewDeviceDataSource,
 		NewDeviceEsimBootstrapDataSource,
+		NewDevicesExportDataSource,
 		NewTagsDataSource,
 		NewUsersDataSource,
 		NewInvitationsDataSource,
