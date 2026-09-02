@@ -2,7 +2,9 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Moep90/terraform-provider-rms/internal/api"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -126,15 +128,16 @@ func (r *TaskResource) Configure(ctx context.Context, req resource.ConfigureRequ
 }
 
 func (r *TaskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	// Verified against the live RMS API: POST /tasks returns 404 RESOURCE_NOT_FOUND.
-	// Creating this resource cannot succeed, so fail here rather than issuing a
-	// request whose failure would surface as a confusing parse error, or worse,
-	// leave an object behind that Terraform never records.
+	// RMS defines GET on /devices/tasks and nothing else: there is no create
+	// operation for an individual task. Fail here rather than issuing a request
+	// that cannot succeed, or worse, recording state for an object RMS never
+	// made.
 	resp.Diagnostics.AddError(
 		"rms_task cannot be created",
-		"The RMS v3 API exposes no /tasks endpoint. "+
-			"The provider fails here deliberately. Use `terraform import` to manage "+
-			"an object that already exists.",
+		"The RMS API exposes no create operation for individual tasks "+
+			"(POST /devices/tasks is not defined). Create a task group with "+
+			"rms_task_group, which RMS does support through POST /devices/tasks/groups, "+
+			"or use `terraform import` to manage a task that already exists.",
 	)
 }
 
@@ -146,9 +149,11 @@ func (r *TaskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	var result map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/tasks/%d", data.ID.ValueInt64()), nil, &result); err != nil {
-		if err.Error() == "API error 404: 404 Not Found" {
+	// RMS exposes no GET /devices/tasks/{id}; the task has to be found in the
+	// collection.
+	result, err := findInList(ctx, r.client, "/devices/tasks", data.ID.ValueInt64())
+	if err != nil {
+		if errors.Is(err, api.ErrNotFound) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -159,16 +164,13 @@ func (r *TaskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	if id, ok := result["id"].(float64); ok {
-		data.ID = types.Int64Value(int64(id))
-	}
 	if name, ok := result["name"].(string); ok {
 		data.Name = types.StringValue(name)
 	}
 	if description, ok := result["description"].(string); ok {
 		data.Description = types.StringValue(description)
 	}
-	if taskType, ok := result["task_type"].(string); ok {
+	if taskType, ok := result["type"].(string); ok {
 		data.TaskType = types.StringValue(taskType)
 	}
 	if status, ok := result["status"].(string); ok {
@@ -177,8 +179,8 @@ func (r *TaskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if companyID, ok := result["company_id"].(float64); ok {
 		data.CompanyID = types.Int64Value(int64(companyID))
 	}
-	if taskGroupID, ok := result["task_group_id"].(float64); ok {
-		data.TaskGroupID = types.Int64Value(int64(taskGroupID))
+	if groupID, ok := result["group_id"].(float64); ok {
+		data.TaskGroupID = types.Int64Value(int64(groupID))
 	}
 	if payload, ok := result["payload"].(string); ok {
 		data.Payload = types.StringValue(payload)
@@ -217,7 +219,7 @@ func (r *TaskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	var result map[string]interface{}
-	if err := r.client.Put(ctx, fmt.Sprintf("/tasks/%d", data.ID.ValueInt64()), updateReq, &result); err != nil {
+	if err := r.client.Put(ctx, fmt.Sprintf("/devices/tasks/%d", data.ID.ValueInt64()), updateReq, &result); err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating task",
 			fmt.Sprintf("Could not update task %d: %s", data.ID.ValueInt64(), err),
@@ -253,8 +255,8 @@ func (r *TaskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	var result map[string]interface{}
-	if err := r.client.Delete(ctx, fmt.Sprintf("/tasks/%d", data.ID.ValueInt64()), &result); err != nil {
-		if err.Error() == "API error 404: 404 Not Found" {
+	if err := r.client.Delete(ctx, fmt.Sprintf("/devices/tasks/%d", data.ID.ValueInt64()), &result); err != nil {
+		if errors.Is(err, api.ErrNotFound) {
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -266,5 +268,16 @@ func (r *TaskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *TaskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// "id" is an Int64 attribute, so the raw string import ID cannot be passed
+	// through unconverted.
+	id, err := strconv.ParseInt(req.ID, 10, 64)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid import ID",
+			fmt.Sprintf("Expected a numeric task ID, got %q.", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }

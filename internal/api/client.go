@@ -307,6 +307,29 @@ func (c *Client) Delete(ctx context.Context, path string, v interface{}) error {
 	return c.do(ctx, req, v)
 }
 
+// DeleteWithBody performs a DELETE request carrying a JSON body. RMS selects
+// the targets of DELETE /devices, DELETE /vpn/hubs and
+// DELETE /vpn/hubs/routes/{id} through the request body rather than the path.
+func (c *Client) DeleteWithBody(ctx context.Context, path string, body, v interface{}) error {
+	reqURL := c.baseURL + path
+
+	var bodyReader io.Reader
+	if body != nil {
+		bodyBytes, err := json.Marshal(body)
+		if err != nil {
+			return err
+		}
+		bodyReader = bytes.NewBuffer(bodyBytes)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, reqURL, bodyReader)
+	if err != nil {
+		return err
+	}
+
+	return c.do(ctx, req, v)
+}
+
 // GetRaw performs a GET request and returns the raw response body as bytes
 func (c *Client) GetRaw(ctx context.Context, path string, params map[string]string) ([]byte, error) {
 	reqURL := c.baseURL + path

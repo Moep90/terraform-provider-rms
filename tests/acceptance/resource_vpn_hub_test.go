@@ -10,18 +10,28 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestVPNHubResource_CRUD(t *testing.T) {
-	mux := http.NewServeMux()
-	server := httptest.NewServer(mux)
-	defer server.Close()
+// vpnHubMux serves the VPN hub operations RMS actually defines: GET, POST and
+// DELETE on /vpn/hubs and PUT on /vpn/hubs/{id}. Every other route 404s, so a
+// call to an undefined path fails the test.
+func vpnHubMux(t *testing.T, state map[int]map[string]interface{}) *http.ServeMux {
+	t.Helper()
 
-	vpnHubState := make(map[int]map[string]interface{})
+	mux := http.NewServeMux()
 	nextID := 1
 
 	mux.HandleFunc("/vpn/hubs", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
+		switch r.Method {
+		case http.MethodGet:
+			hubs := make([]interface{}, 0, len(state))
+			for _, hub := range state {
+				hubs = append(hubs, hub)
+			}
+			writeRMSList(t, w, hubs)
+
+		case http.MethodPost:
 			var req map[string]interface{}
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				t.Logf("error decoding request: %v", err)
@@ -30,103 +40,118 @@ func TestVPNHubResource_CRUD(t *testing.T) {
 			currentID := nextID
 			nextID++
 
-			name := ""
-			if n, ok := req["name"].(string); ok {
-				name = n
-			}
-			description := ""
-			if d, ok := req["description"].(string); ok {
-				description = d
-			}
-			var tagIDs []interface{}
-			if t, ok := req["tag_id"].([]interface{}); ok {
-				tagIDs = t
-			}
+			name, _ := req["name"].(string)
+			description, _ := req["description"].(string)
 
-			vpnHubState[currentID] = map[string]interface{}{
+			state[currentID] = map[string]interface{}{
 				"id":          float64(currentID),
 				"name":        name,
 				"description": description,
 				"company_id":  float64(1),
 				"hub_zone":    req["hub_zone"],
 				"vpn_type":    req["vpn_type"],
-				"tag_id":      tagIDs,
+				"tags":        tagObjects(req["tag_id"]),
 			}
 
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(map[string]interface{}{"id": float64(currentID)}); err != nil {
 				t.Logf("error encoding response: %v", err)
 			}
-			return
-		}
 
-		if r.Method == http.MethodDelete {
+		case http.MethodDelete:
+			// RMS selects the hubs to delete through the request body.
 			var req map[string]interface{}
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				t.Logf("error decoding request: %v", err)
+				t.Errorf("DELETE /vpn/hubs must carry a JSON body: %v", err)
 			}
-			if idList, ok := req["id"].([]interface{}); ok {
-				for _, id := range idList {
-					if f, ok := id.(float64); ok {
-						delete(vpnHubState, int(f))
-					}
+			idList, ok := req["id"].([]interface{})
+			if !ok {
+				t.Errorf("DELETE /vpn/hubs body has no id list: %v", req)
+			}
+			for _, id := range idList {
+				if f, ok := id.(float64); ok {
+					delete(state, int(f))
 				}
 			}
 			w.WriteHeader(http.StatusOK)
-			return
-		}
 
-		w.WriteHeader(http.StatusNotFound)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
 	})
 
 	mux.HandleFunc("/vpn/hubs/", func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-
-		parts := strings.Split(path, "/")
-		if len(parts) >= 3 {
-			id, err := strconv.Atoi(parts[len(parts)-1])
-			if err != nil {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-
-			if r.Method == http.MethodGet {
-				if cfg, ok := vpnHubState[id]; ok {
-					w.Header().Set("Content-Type", "application/json")
-					if err := json.NewEncoder(w).Encode(cfg); err != nil {
-						t.Logf("error encoding response: %v", err)
-					}
-					return
-				}
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-
-			if r.Method == http.MethodPut {
-				var req map[string]interface{}
-				if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-					t.Logf("error decoding request: %v", err)
-				}
-				if cfg, ok := vpnHubState[id]; ok {
-					if description, ok := req["description"].(string); ok {
-						cfg["description"] = description
-					}
-					if tagIDs, ok := req["tag_id"].([]interface{}); ok {
-						cfg["tag_id"] = tagIDs
-					}
-					w.Header().Set("Content-Type", "application/json")
-					if err := json.NewEncoder(w).Encode(cfg); err != nil {
-						t.Logf("error encoding response: %v", err)
-					}
-					return
-				}
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
+		parts := strings.Split(r.URL.Path, "/")
+		id, err := strconv.Atoi(parts[len(parts)-1])
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
 
-		w.WriteHeader(http.StatusNotFound)
+		// RMS defines PUT here and nothing else; notably there is no GET.
+		if r.Method != http.MethodPut {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		var req map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Logf("error decoding request: %v", err)
+		}
+		hub, ok := state[id]
+		if !ok {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if description, ok := req["description"].(string); ok {
+			hub["description"] = description
+		}
+		if _, ok := req["tag_id"]; ok {
+			hub["tags"] = tagObjects(req["tag_id"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(hub); err != nil {
+			t.Logf("error encoding response: %v", err)
+		}
 	})
+
+	return mux
+}
+
+// writeRMSList emits the envelope RMS wraps its collections in.
+func writeRMSList(t *testing.T, w http.ResponseWriter, items []interface{}) {
+	t.Helper()
+
+	w.Header().Set("Content-Type", "application/json")
+	body := map[string]interface{}{
+		"success": true,
+		"data":    items,
+		"meta":    map[string]interface{}{"total": len(items)},
+	}
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		t.Logf("error encoding response: %v", err)
+	}
+}
+
+// tagObjects turns the tag_id array a request carries into the tag objects RMS
+// reports back on the hub record.
+func tagObjects(raw interface{}) []interface{} {
+	ids, ok := raw.([]interface{})
+	if !ok {
+		return []interface{}{}
+	}
+
+	tags := make([]interface{}, 0, len(ids))
+	for _, id := range ids {
+		tags = append(tags, map[string]interface{}{"id": id})
+	}
+	return tags
+}
+
+func TestVPNHubResource_CRUD(t *testing.T) {
+	vpnHubState := make(map[int]map[string]interface{})
+	server := httptest.NewServer(vpnHubMux(t, vpnHubState))
+	defer server.Close()
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -151,6 +176,41 @@ func TestVPNHubResource_CRUD(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr("rms_vpn_hub.test", "tag_ids.*", "10"),
 					resource.TestCheckTypeSetElemAttr("rms_vpn_hub.test", "tag_ids.*", "20"),
 				),
+			},
+		},
+	})
+}
+
+// TestVPNHubResource_ReadRemovesDeletedHub covers the read-from-list rule: a
+// hub deleted out of band drops out of /vpn/hubs, so it must leave state and
+// the next plan must show a create.
+func TestVPNHubResource_ReadRemovesDeletedHub(t *testing.T) {
+	vpnHubState := make(map[int]map[string]interface{})
+	server := httptest.NewServer(vpnHubMux(t, vpnHubState))
+	defer server.Close()
+
+	config := testVPNHubConfig(server.URL, "Test VPN Hub", "Test description", 1, "frankfurt-1", "tun", []int{10})
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  resource.TestCheckResourceAttr("rms_vpn_hub.test", "name", "Test VPN Hub"),
+			},
+			{
+				// Drop the hub behind Terraform's back, then refresh.
+				PreConfig: func() {
+					for id := range vpnHubState {
+						delete(vpnHubState, id)
+					}
+				},
+				Config: config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_vpn_hub.test", plancheck.ResourceActionCreate),
+					},
+				},
 			},
 		},
 	})

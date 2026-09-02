@@ -8,33 +8,24 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestEmailConfigurationResource_CRUD(t *testing.T) {
-	mux := http.NewServeMux()
-	server := httptest.NewServer(mux)
-	defer server.Close()
+// emailConfigurationMux serves the operations RMS defines: GET and POST on
+// /email-configurations and PUT and DELETE on /email-configurations/{id}.
+// There is no read-by-id, so that path 404s on GET.
+func emailConfigurationMux(t *testing.T, emailState map[int]map[string]interface{}) *http.ServeMux {
+	t.Helper()
 
-	emailState := map[int]map[string]interface{}{1: {
-		"id":       1,
-		"name":     "Test SMTP",
-		"host":     "smtp.example.com",
-		"port":     int64(587),
-		"email":    "test@example.com",
-		"username": "testuser",
-	}}
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("/email-configurations", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			w.Header().Set("Content-Type", "application/json")
 			configs := make([]interface{}, 0, len(emailState))
 			for _, cfg := range emailState {
 				configs = append(configs, cfg)
 			}
-			resp := map[string]interface{}{"data": configs}
-			if err := json.NewEncoder(w).Encode(resp); err != nil {
-				t.Logf("error encoding response: %v", err)
-			}
+			writeRMSList(t, w, configs)
 			return
 		}
 
@@ -50,7 +41,7 @@ func TestEmailConfigurationResource_CRUD(t *testing.T) {
 				}
 			}
 			emailState[newID] = map[string]interface{}{
-				"id":       newID,
+				"id":       float64(newID),
 				"name":     req["name"],
 				"host":     req["host"],
 				"port":     req["port"],
@@ -73,18 +64,6 @@ func TestEmailConfigurationResource_CRUD(t *testing.T) {
 			var id int
 			if _, err := fmt.Sscanf(path[22:], "%d", &id); err != nil {
 				t.Logf("error parsing ID: %v", err)
-			}
-
-			if r.Method == http.MethodGet {
-				if cfg, ok := emailState[id]; ok {
-					w.Header().Set("Content-Type", "application/json")
-					if err := json.NewEncoder(w).Encode(cfg); err != nil {
-						t.Logf("error encoding response: %v", err)
-					}
-					return
-				}
-				w.WriteHeader(http.StatusNotFound)
-				return
 			}
 
 			if r.Method == http.MethodPut {
@@ -127,6 +106,14 @@ func TestEmailConfigurationResource_CRUD(t *testing.T) {
 
 		w.WriteHeader(http.StatusNotFound)
 	})
+
+	return mux
+}
+
+func TestEmailConfigurationResource_CRUD(t *testing.T) {
+	emailState := newEmailConfigState()
+	server := httptest.NewServer(emailConfigurationMux(t, emailState))
+	defer server.Close()
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -171,4 +158,50 @@ resource "rms_email_configuration" "test" {
   password = "%s"
 }
 `, baseURL, name, host, port, email, username, password)
+}
+
+func newEmailConfigState() map[int]map[string]interface{} {
+	return map[int]map[string]interface{}{1: {
+		"id":       float64(1),
+		"name":     "Test SMTP",
+		"host":     "smtp.example.com",
+		"port":     int64(587),
+		"email":    "test@example.com",
+		"username": "testuser",
+	}}
+}
+
+// TestEmailConfigurationResource_ReadRemovesDeletedConfig covers the
+// read-from-list rule: a configuration deleted out of band drops out of
+// /email-configurations, so it must leave state and the next plan must show a
+// create.
+func TestEmailConfigurationResource_ReadRemovesDeletedConfig(t *testing.T) {
+	emailState := newEmailConfigState()
+	server := httptest.NewServer(emailConfigurationMux(t, emailState))
+	defer server.Close()
+
+	config := testEmailConfigConfig(server.URL, "Test SMTP", "smtp.example.com", 587, "test@example.com", "testuser", "secret")
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  resource.TestCheckResourceAttr("rms_email_configuration.test", "name", "Test SMTP"),
+			},
+			{
+				PreConfig: func() {
+					for id := range emailState {
+						delete(emailState, id)
+					}
+				},
+				Config: config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_email_configuration.test", plancheck.ResourceActionCreate),
+					},
+				},
+			},
+		},
+	})
 }

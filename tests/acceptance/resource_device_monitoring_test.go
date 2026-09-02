@@ -45,6 +45,20 @@ func TestDeviceResource_Monitoring(t *testing.T) {
 			return
 		}
 
+		// RMS deletes devices through the collection, selecting them by id in
+		// the request body.
+		if r.Method == http.MethodDelete {
+			var req map[string]interface{}
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				t.Errorf("DELETE /devices must carry a JSON body: %v", err)
+			}
+			if _, ok := req["device_id"].([]interface{}); !ok {
+				t.Errorf("DELETE /devices body has no device_id list: %v", req)
+			}
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		w.WriteHeader(http.StatusNotFound)
 	})
 
@@ -103,10 +117,6 @@ func TestDeviceResource_Monitoring(t *testing.T) {
 				return
 			}
 
-			if r.Method == http.MethodDelete {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
 		}
 
 		w.WriteHeader(http.StatusNotFound)

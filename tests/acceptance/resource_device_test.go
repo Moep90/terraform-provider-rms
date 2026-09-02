@@ -93,7 +93,12 @@ func TestAccDevice(t *testing.T) {
 			}
 			_ = json.NewEncoder(w).Encode(response)
 
-		case r.Method == http.MethodDelete && r.URL.Path == "/devices/1":
+		case r.Method == http.MethodDelete && r.URL.Path == "/devices":
+			var req map[string]interface{}
+			_ = json.NewDecoder(r.Body).Decode(&req)
+			if _, ok := req["device_id"].([]interface{}); !ok {
+				t.Errorf("DELETE /devices body has no device_id list: %v", req)
+			}
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"success":true}`))
 

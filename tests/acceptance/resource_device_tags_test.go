@@ -5,20 +5,47 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestDeviceTagsResource_Assign(t *testing.T) {
-	mux := http.NewServeMux()
-	server := httptest.NewServer(mux)
-	defer server.Close()
+// deviceTagsMux serves the tag operations RMS defines: PUT on
+// /devices/tags/overwrite and /devices/tags/unassign, with the assignment read
+// back off the device record at GET /devices/{id}. There is no
+// /devices/{id}/tags collection, so that path 404s.
+func deviceTagsMux(t *testing.T, deviceTagState map[int][]int) *http.ServeMux {
+	t.Helper()
 
-	deviceTagState := map[int][]int{123: {10, 20}}
+	mux := http.NewServeMux()
+
+	// selector pulls the single device_id / tag_id pair out of an assignment body.
+	selector := func(w http.ResponseWriter, r *http.Request) (int, []int, bool) {
+		var req struct {
+			Data []struct {
+				DeviceID int   `json:"device_id"`
+				TagID    []int `json:"tag_id"`
+			} `json:"data"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("%s %s must carry a JSON body: %v", r.Method, r.URL.Path, err)
+			w.WriteHeader(http.StatusBadRequest)
+			return 0, nil, false
+		}
+		if len(req.Data) != 1 {
+			t.Errorf("%s %s expects exactly one data entry, got %d", r.Method, r.URL.Path, len(req.Data))
+			w.WriteHeader(http.StatusBadRequest)
+			return 0, nil, false
+		}
+		return req.Data[0].DeviceID, req.Data[0].TagID, true
+	}
 
 	mux.HandleFunc("/devices", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
+		switch r.Method {
+		case http.MethodPost:
 			w.Header().Set("Content-Type", "application/json")
 			resp := map[string]interface{}{
 				"id":                123,
@@ -35,109 +62,110 @@ func TestDeviceTagsResource_Assign(t *testing.T) {
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				t.Logf("error encoding response: %v", err)
 			}
+
+		case http.MethodDelete:
+			var req map[string]interface{}
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				t.Errorf("DELETE /devices must carry a JSON body: %v", err)
+			}
+			w.WriteHeader(http.StatusOK)
+
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+
+	mux.HandleFunc("/devices/tags/overwrite", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		deviceID, tagIDs, ok := selector(w, r)
+		if !ok {
+			return
+		}
+		deviceTagState[deviceID] = tagIDs
+		writeSuccess(t, w)
+	})
+
+	mux.HandleFunc("/devices/tags/unassign", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		deviceID, tagIDs, ok := selector(w, r)
+		if !ok {
 			return
 		}
 
-		w.WriteHeader(http.StatusNotFound)
+		remove := make(map[int]bool, len(tagIDs))
+		for _, id := range tagIDs {
+			remove[id] = true
+		}
+		kept := make([]int, 0, len(deviceTagState[deviceID]))
+		for _, id := range deviceTagState[deviceID] {
+			if !remove[id] {
+				kept = append(kept, id)
+			}
+		}
+		deviceTagState[deviceID] = kept
+		writeSuccess(t, w)
 	})
 
 	mux.HandleFunc("/devices/", func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		if len(path) > 9 {
-			var deviceID int
-			if _, err := fmt.Sscanf(path[9:], "%d", &deviceID); err != nil {
-				t.Logf("error parsing device ID: %v", err)
-			}
-
-			if r.Method == http.MethodGet {
-				w.Header().Set("Content-Type", "application/json")
-				resp := map[string]interface{}{
-					"id":                deviceID,
-					"name":              "Test Device",
-					"device_series":     "rut",
-					"status":            "online",
-					"firmware":          "v1.0",
-					"created_at":        "2024-01-01T00:00:00Z",
-					"monitoring_enable": false,
-				}
-				if err := json.NewEncoder(w).Encode(resp); err != nil {
-					t.Logf("error encoding response: %v", err)
-				}
-				return
-			}
-
-			if r.Method == http.MethodPut {
-				var req map[string]interface{}
-				if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-					t.Logf("error decoding request: %v", err)
-				}
-				w.Header().Set("Content-Type", "application/json")
-				resp := map[string]interface{}{
-					"id":                deviceID,
-					"name":              "Test Device",
-					"device_series":     "rut",
-					"status":            "online",
-					"firmware":          "v1.0",
-					"created_at":        "2024-01-01T00:00:00Z",
-					"monitoring_enable": false,
-				}
-				if err := json.NewEncoder(w).Encode(resp); err != nil {
-					t.Logf("error encoding response: %v", err)
-				}
-				return
-			}
-
-			if r.Method == http.MethodDelete {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusNotFound)
-	})
-
-	mux.HandleFunc("/devices/123/tags", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			w.Header().Set("Content-Type", "application/json")
-			tagIDs := deviceTagState[123]
-			tags := make([]interface{}, len(tagIDs))
-			for i, id := range tagIDs {
-				tags[i] = map[string]interface{}{
-					"id":   id,
-					"name": fmt.Sprintf("Tag %d", id),
-				}
-			}
-			if err := json.NewEncoder(w).Encode(tags); err != nil {
-				t.Logf("error encoding response: %v", err)
-			}
+		parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
+		deviceID, err := strconv.Atoi(parts[len(parts)-1])
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		if r.Method == http.MethodPut || r.Method == http.MethodPost {
-			var req map[string]interface{}
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				t.Logf("error decoding request: %v", err)
-			}
-			if tagIdsRaw, ok := req["tag_ids"]; ok {
-				if tagIds, ok := tagIdsRaw.([]interface{}); ok {
-					ids := []int{}
-					for _, tid := range tagIds {
-						if f, ok := tid.(float64); ok {
-							ids = append(ids, int(f))
-						}
-					}
-					deviceTagState[123] = ids
-				}
-			}
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(map[string]interface{}{"success": true}); err != nil {
-				t.Logf("error encoding response: %v", err)
-			}
+		if r.Method != http.MethodGet && r.Method != http.MethodPut {
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		w.WriteHeader(http.StatusNotFound)
+		tagIDs := deviceTagState[deviceID]
+		tags := make([]interface{}, 0, len(tagIDs))
+		for _, id := range tagIDs {
+			tags = append(tags, map[string]interface{}{
+				"id":   float64(id),
+				"name": fmt.Sprintf("Tag %d", id),
+			})
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := map[string]interface{}{
+			"id":                deviceID,
+			"name":              "Test Device",
+			"device_series":     "rut",
+			"status":            "online",
+			"firmware":          "v1.0",
+			"created_at":        "2024-01-01T00:00:00Z",
+			"monitoring_enable": false,
+			"tags":              tags,
+		}
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			t.Logf("error encoding response: %v", err)
+		}
 	})
+
+	return mux
+}
+
+func writeSuccess(t *testing.T, w http.ResponseWriter) {
+	t.Helper()
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"success": true}); err != nil {
+		t.Logf("error encoding response: %v", err)
+	}
+}
+
+func TestDeviceTagsResource_Assign(t *testing.T) {
+	deviceTagState := map[int][]int{123: {10, 20}}
+	server := httptest.NewServer(deviceTagsMux(t, deviceTagState))
+	defer server.Close()
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
@@ -152,6 +180,11 @@ func TestDeviceTagsResource_Assign(t *testing.T) {
 			},
 			{
 				Config: testDeviceTagsConfig(server.URL, []int{10, 20, 30}),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_device_tags.assignment", plancheck.ResourceActionUpdate),
+					},
+				},
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rms_device_tags.assignment", "device_id", "123"),
 					resource.TestCheckTypeSetElemAttr("rms_device_tags.assignment", "tag_ids.*", "10"),
@@ -163,7 +196,62 @@ func TestDeviceTagsResource_Assign(t *testing.T) {
 				Config: testDeviceTagsConfig(server.URL, []int{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rms_device_tags.assignment", "device_id", "123"),
+					resource.TestCheckResourceAttr("rms_device_tags.assignment", "tag_ids.#", "0"),
 				),
+			},
+		},
+	})
+}
+
+// TestDeviceTagsResource_ReadRemovesDeletedDevice covers the 404-on-read rule:
+// once the device is gone the assignment has nothing to describe, so it must
+// leave state.
+func TestDeviceTagsResource_ReadRemovesDeletedDevice(t *testing.T) {
+	deviceTagState := map[int][]int{123: {10}}
+	deviceGone := false
+
+	mux := deviceTagsMux(t, deviceTagState)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if deviceGone && r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/devices/123") {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		mux.ServeHTTP(w, r)
+	}))
+	defer server.Close()
+
+	// The assignment stands alone here so the refresh only exercises
+	// rms_device_tags.
+	config := fmt.Sprintf(`
+provider "rms" {
+  token    = "test-token"
+  base_url = "%s"
+}
+
+resource "rms_device_tags" "assignment" {
+  device_id = 123
+  tag_ids   = [10]
+}
+`, server.URL)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  resource.TestCheckResourceAttr("rms_device_tags.assignment", "device_id", "123"),
+			},
+			{
+				PreConfig: func() { deviceGone = true },
+				Config:    config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("rms_device_tags.assignment", plancheck.ResourceActionCreate),
+					},
+				},
+				// The device stays absent, so the post-apply refresh drops the
+				// assignment again.
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
