@@ -50,7 +50,10 @@ func TestTaskResourceImportState(t *testing.T) {
 
 func TestTaskResourceImportStateRejectsNonNumeric(t *testing.T) {
 	ctx := context.Background()
-	r := NewTaskResource().(*TaskResource)
+	r, ok := NewTaskResource().(*TaskResource)
+	if !ok {
+		t.Fatal("NewTaskResource did not return *TaskResource")
+	}
 
 	schemaResp := &resource.SchemaResponse{}
 	r.Schema(ctx, resource.SchemaRequest{}, schemaResp)
