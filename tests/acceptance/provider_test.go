@@ -19,11 +19,24 @@ var ProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, erro
 	"rms": providerserver.NewProtocol6WithError(provider.New("test")()),
 }
 
-// isRealAPITest returns true if we should test against the real API
+// isRealAPITest reports whether a credential for the real API is available.
+// The token variables are the same ones the provider itself reads, so an
+// environment configured to run the provider also runs these tests.
+//
+// TF_ACC remains the gate that decides whether tests touching real
+// infrastructure execute at all: terraform-plugin-testing skips every
+// resource.Test without it, so a bare `go test ./...` never reaches RMS.
 func isRealAPITest() bool {
-	// E2E tests require both RMS_ADMIN_TOKEN and explicit RUN_E2E_TESTS flag
-	// They are skipped by default to avoid failures when API is unavailable
-	return os.Getenv("RMS_ADMIN_TOKEN") != "" && os.Getenv("RUN_E2E_TESTS") == "true"
+	return e2eToken() != ""
+}
+
+// e2eToken resolves the API token from the environment, matching the
+// precedence in provider.Configure.
+func e2eToken() string {
+	if v := os.Getenv("TELTONIKA_RMS_TOKEN"); v != "" {
+		return v
+	}
+	return os.Getenv("RMS_ADMIN_TOKEN")
 }
 
 // testAccPreCheck validates that required environment variables are set

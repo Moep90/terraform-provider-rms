@@ -66,12 +66,12 @@ testacc:
 
 ## Run E2E acceptance tests against real API.
 ## These create and destroy real objects in the tenant the token belongs to.
-## Required: RMS_ADMIN_TOKEN, RMS_PARENT_COMPANY_ID.
+## Required: TELTONIKA_RMS_TOKEN or RMS_ADMIN_TOKEN, plus RMS_PARENT_COMPANY_ID.
 ## Optional: TELTONIKA_RMS_BASE_URL, RMS_VPN_HUB_ZONE, RMS_VPN_HUB_USER_ID.
-## Without RMS_ADMIN_TOKEN every E2E test skips.
+## Without a token every E2E test skips. TF_ACC gates them the rest of the time.
 testacc-e2e:
 	@echo "Running E2E acceptance tests against real API (creates and destroys real objects)..."
-	RUN_E2E_TESTS=true TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
+	TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
 
 ## Run linting
 lint:

@@ -206,10 +206,11 @@ so a run that aborts mid-apply leaves identifiable debris.
 
 Required:
 
-- `RMS_ADMIN_TOKEN`: API token. Without it every E2E test skips.
+- `TELTONIKA_RMS_TOKEN` or `RMS_ADMIN_TOKEN`: API token, read with the same
+  precedence as the provider. Without one every E2E test skips.
 - `RMS_PARENT_COMPANY_ID`: company the test objects are created under.
-- `RUN_E2E_TESTS=true`: set by `make testacc-e2e`, needed when running
-  `go test` directly.
+- `TF_ACC=1`: set by `make testacc-e2e`. Terraform's standard gate for tests
+  that touch real infrastructure, so `go test ./...` never reaches RMS.
 
 Optional:
 

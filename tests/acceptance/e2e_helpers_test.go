@@ -27,14 +27,13 @@ var e2eRunPrefix = "tfe2e-" + e2eRunID
 // e2eClient builds an API client from the same environment provider.Configure
 // reads, so the harness and the provider under test address the same tenant.
 func e2eClient() *api.Client {
-	token := os.Getenv("TELTONIKA_RMS_TOKEN")
-	if token == "" {
-		token = os.Getenv("RMS_ADMIN_TOKEN")
-	}
+	token := e2eToken()
 
+	// With no override, defer to whatever default the client itself defines,
+	// so the harness and the provider always agree on the host.
 	baseURL := os.Getenv("TELTONIKA_RMS_BASE_URL")
 	if baseURL == "" {
-		baseURL = api.BaseURL
+		return api.NewClient(context.Background(), token)
 	}
 
 	return api.NewClientWithOptions(context.Background(), token, baseURL, api.Timeout, api.MaxRetries, "e2e")
