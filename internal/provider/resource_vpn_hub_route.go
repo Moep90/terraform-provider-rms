@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &VPNHubRouteResource{}
@@ -81,6 +84,9 @@ func (r *VPNHubRouteResource) Schema(ctx context.Context, req resource.SchemaReq
 			"description": schema.StringAttribute{
 				Optional:    true,
 				Description: "Description for the route.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 		},
 	}
@@ -129,61 +135,67 @@ func (r *VPNHubRouteResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	var result map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/vpn/hubs/routes/%s", state.ID.ValueString()), nil, &result); err != nil {
+	// RMS exposes no GET /vpn/hubs/routes/{id}; routes are read off the
+	// collection, scoped to the hub and hub user.
+	params := map[string]string{
+		"vpn_hub_id":      strconv.FormatInt(state.VPNHubID.ValueInt64(), 10),
+		"vpn_hub_user_id": strconv.FormatInt(state.VPNHubUserID.ValueInt64(), 10),
+	}
+
+	var payload json.RawMessage
+	if err := r.client.Get(ctx, "/vpn/hubs/routes", params, &payload); err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading VPN hub route", fmt.Sprintf("Could not read VPN hub route %s: %s", state.ID.ValueString(), err))
 		return
 	}
 
-	if vpnHubID, ok := result["vpn_hub_id"].(float64); ok {
-		state.VPNHubID = types.Int64Value(int64(vpnHubID))
-	}
-	if vpnHubUserID, ok := result["vpn_hub_user_id"].(float64); ok {
-		state.VPNHubUserID = types.Int64Value(int64(vpnHubUserID))
-	}
-	if ipAddress, ok := result["ip_address"].(string); ok {
-		state.IPAddress = types.StringValue(ipAddress)
-	}
-	if netmask, ok := result["netmask"].(string); ok {
-		state.Netmask = types.StringValue(netmask)
-	}
-	if description, ok := result["description"].(string); ok {
-		state.Description = types.StringValue(description)
+	var routes []map[string]interface{}
+	if err := json.Unmarshal(payload, &routes); err != nil {
+		// RMS answered with a Status API channel handle rather than a route
+		// list. Nothing can be reconciled, and treating that as "route gone"
+		// would destroy and recreate the route on every refresh, so state is
+		// left untouched.
+		tflog.Warn(ctx, "VPN hub route list unavailable, keeping state", map[string]interface{}{
+			"id": state.ID.ValueString(),
+		})
+		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	// Every attribute of this resource is a RequiresReplace input, so the only
+	// thing the collection can tell us is whether the route is still there.
+	for _, route := range routes {
+		ip, ok := route["ip"].(string)
+		if !ok {
+			ip, ok = route["ip_address"].(string)
+		}
+		if !ok {
+			continue
+		}
+
+		netmask, ok := route["netmask"].(string)
+		if !ok {
+			continue
+		}
+
+		if ip == state.IPAddress.ValueString() && netmask == state.Netmask.ValueString() {
+			return
+		}
+	}
+
+	resp.State.RemoveResource(ctx)
 }
 
 func (r *VPNHubRouteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan VPNHubRouteResourceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	updateReq := map[string]interface{}{}
-
-	if !plan.Description.IsNull() {
-		updateReq["description"] = plan.Description.ValueString()
-	}
-
-	if len(updateReq) == 0 {
-		resp.Diagnostics.AddError("No fields to update", "At least one field must be provided for update")
-		return
-	}
-
-	var result map[string]interface{}
-	if err := r.client.Put(ctx, fmt.Sprintf("/vpn/hubs/routes/%s", plan.ID.ValueString()), updateReq, &result); err != nil {
-		resp.Diagnostics.AddError("Error updating VPN hub route", fmt.Sprintf("Could not update VPN hub route %s: %s", plan.ID.ValueString(), err))
-		return
-	}
-
-	if description, ok := result["description"].(string); ok {
-		plan.Description = types.StringValue(description)
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// Every attribute requires replacement, so Terraform never plans an
+	// in-place update here. RMS exposes no update operation for routes.
+	resp.Diagnostics.AddError(
+		"rms_vpn_hub_route cannot be updated",
+		"The RMS API exposes no update operation for VPN hub routes. Every "+
+			"attribute of this resource requires replacement instead.",
+	)
 }
 
 func (r *VPNHubRouteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -194,14 +206,19 @@ func (r *VPNHubRouteResource) Delete(ctx context.Context, req resource.DeleteReq
 		return
 	}
 
+	// The path segment carries the hub id; the route itself is selected through
+	// the request body.
 	deleteReq := map[string]interface{}{
-		"vpn_hub_id":      int(state.VPNHubID.ValueInt64()),
-		"vpn_hub_user_id": int(state.VPNHubUserID.ValueInt64()),
+		"vpn_hub_user_id": state.VPNHubUserID.ValueInt64(),
 		"ip_address":      state.IPAddress.ValueString(),
 		"netmask":         state.Netmask.ValueString(),
 	}
 
-	if err := r.client.Delete(ctx, "/vpn/hubs/routes", deleteReq); err != nil {
+	deletePath := fmt.Sprintf("/vpn/hubs/routes/%d", state.VPNHubID.ValueInt64())
+	if err := r.client.DeleteWithBody(ctx, deletePath, deleteReq, nil); err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting VPN hub route", fmt.Sprintf("Could not delete VPN hub route: %s", err))
 		return
 	}

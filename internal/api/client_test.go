@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -383,4 +385,57 @@ func TestClientGetDataWithoutSuccessIsNotUnwrapped(t *testing.T) {
 	var result map[string]interface{}
 	require.NoError(t, client.Get(context.Background(), "/test", nil, &result))
 	assert.Equal(t, []interface{}{map[string]interface{}{"id": float64(1)}}, result["data"])
+}
+
+func TestClientDeleteWithBody(t *testing.T) {
+	var received map[string]interface{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "DELETE", r.Method)
+		assert.Equal(t, "/devices", r.URL.Path)
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&received))
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"success": true, "data": {"deleted": true}}`))
+	}))
+	defer server.Close()
+
+	client := &Client{
+		baseURL: server.URL,
+		httpClient: &http.Client{
+			Timeout: Timeout,
+		},
+		token:      "test-token",
+		maxRetries: MaxRetries,
+	}
+
+	var result map[string]interface{}
+	err := client.DeleteWithBody(context.Background(), "/devices", map[string]interface{}{
+		"device_id": []int64{42},
+	}, &result)
+
+	require.NoError(t, err)
+	assert.Equal(t, []interface{}{float64(42)}, received["device_id"])
+	deleted, ok := result["deleted"].(bool)
+	assert.True(t, ok && deleted)
+}
+
+func TestClientDeleteWithBodyNilBodySendsNone(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		assert.Empty(t, body)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		baseURL: server.URL,
+		httpClient: &http.Client{
+			Timeout: Timeout,
+		},
+		token:      "test-token",
+		maxRetries: MaxRetries,
+	}
+
+	require.NoError(t, client.DeleteWithBody(context.Background(), "/devices", nil, nil))
 }

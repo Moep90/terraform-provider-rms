@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Moep90/terraform-provider-rms/internal/api"
@@ -119,8 +120,14 @@ func (r *InvitationResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	var result map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/users/invitations/%d", data.ID.ValueInt64()), nil, &result); err != nil {
+	// RMS exposes DELETE on /users/invitations/{id} but no GET, so the
+	// invitation has to be found in the collection.
+	result, err := findInList(ctx, r.client, "/users/invitations", data.ID.ValueInt64())
+	if err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading invitation", fmt.Sprintf("Could not read invitation %d: %s", data.ID.ValueInt64(), err))
 		return
 	}

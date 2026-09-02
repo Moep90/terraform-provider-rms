@@ -2,9 +2,11 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Moep90/terraform-provider-rms/internal/api"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -61,6 +63,26 @@ func (r *DeviceTagsResource) Schema(ctx context.Context, req resource.SchemaRequ
 	}
 }
 
+// tagAssignment builds the RMS selector body shared by
+// PUT /devices/tags/overwrite and PUT /devices/tags/unassign.
+func tagAssignment(deviceID int64, tagIDs []int64) map[string]interface{} {
+	return map[string]interface{}{
+		"data": []map[string]interface{}{
+			{
+				"device_id": deviceID,
+				"tag_id":    tagIDs,
+			},
+		},
+	}
+}
+
+// planTagIDs reads the tag_ids set out of a model.
+func planTagIDs(ctx context.Context, set types.Set, diags *diag.Diagnostics) []int64 {
+	tagIDs := make([]int64, 0, len(set.Elements()))
+	diags.Append(set.ElementsAs(ctx, &tagIDs, false)...)
+	return tagIDs
+}
+
 func (r *DeviceTagsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan DeviceTagsResourceModel
 
@@ -69,22 +91,14 @@ func (r *DeviceTagsResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	tagIDs := make([]int64, 0, len(plan.TagIDs.Elements()))
-	resp.Diagnostics.Append(plan.TagIDs.ElementsAs(ctx, &tagIDs, false)...)
+	tagIDs := planTagIDs(ctx, plan.TagIDs, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	apiTagIDs := make([]interface{}, len(tagIDs))
-	for i, id := range tagIDs {
-		apiTagIDs[i] = int(id)
-	}
-
-	updateReq := map[string]interface{}{
-		"tag_ids": apiTagIDs,
-	}
-
-	if err := r.client.Put(ctx, fmt.Sprintf("/devices/%d/tags", plan.DeviceID.ValueInt64()), updateReq, nil); err != nil {
+	// RMS exposes no /devices/{id}/tags collection; tag assignment goes through
+	// PUT /devices/tags/overwrite.
+	if err := r.client.Put(ctx, "/devices/tags/overwrite", tagAssignment(plan.DeviceID.ValueInt64(), tagIDs), nil); err != nil {
 		resp.Diagnostics.AddError(
 			"Error assigning tags to device",
 			fmt.Sprintf("Could not assign tags to device %d: %s", plan.DeviceID.ValueInt64(), err),
@@ -105,8 +119,13 @@ func (r *DeviceTagsResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	var tagsResult []map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/devices/%d/tags", state.DeviceID.ValueInt64()), nil, &tagsResult); err != nil {
+	// The device record carries its tags; there is no per-device tag endpoint.
+	var device map[string]interface{}
+	if err := r.client.Get(ctx, fmt.Sprintf("/devices/%d", state.DeviceID.ValueInt64()), nil, &device); err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error reading device tags",
 			fmt.Sprintf("Could not read tags for device %d: %s", state.DeviceID.ValueInt64(), err),
@@ -114,15 +133,21 @@ func (r *DeviceTagsResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	tagIDs := make([]int64, 0, len(tagsResult))
-	for _, tag := range tagsResult {
-		if id, ok := tag["id"].(float64); ok {
-			tagIDs = append(tagIDs, int64(id))
+	tagIDs := make([]int64, 0)
+	if tags, ok := device["tags"].([]interface{}); ok {
+		for _, tag := range tags {
+			tagMap, ok := tag.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if id, ok := tagMap["id"].(float64); ok {
+				tagIDs = append(tagIDs, int64(id))
+			}
 		}
 	}
 
-	newSet, diag := types.SetValueFrom(ctx, types.Int64Type, tagIDs)
-	resp.Diagnostics.Append(diag...)
+	newSet, diags := types.SetValueFrom(ctx, types.Int64Type, tagIDs)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -140,22 +165,12 @@ func (r *DeviceTagsResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	tagIDs := make([]int64, 0, len(plan.TagIDs.Elements()))
-	resp.Diagnostics.Append(plan.TagIDs.ElementsAs(ctx, &tagIDs, false)...)
+	tagIDs := planTagIDs(ctx, plan.TagIDs, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	apiTagIDs := make([]interface{}, len(tagIDs))
-	for i, id := range tagIDs {
-		apiTagIDs[i] = int(id)
-	}
-
-	updateReq := map[string]interface{}{
-		"tag_ids": apiTagIDs,
-	}
-
-	if err := r.client.Put(ctx, fmt.Sprintf("/devices/%d/tags", plan.DeviceID.ValueInt64()), updateReq, nil); err != nil {
+	if err := r.client.Put(ctx, "/devices/tags/overwrite", tagAssignment(plan.DeviceID.ValueInt64(), tagIDs), nil); err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating device tags",
 			fmt.Sprintf("Could not update tags for device %d: %s", plan.DeviceID.ValueInt64(), err),
@@ -163,29 +178,7 @@ func (r *DeviceTagsResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	var tagsResult []map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/devices/%d/tags", plan.DeviceID.ValueInt64()), nil, &tagsResult); err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading device tags after update",
-			fmt.Sprintf("Could not read tags for device %d: %s", plan.DeviceID.ValueInt64(), err),
-		)
-		return
-	}
-
-	newTagIDs := make([]int64, 0, len(tagsResult))
-	for _, tag := range tagsResult {
-		if id, ok := tag["id"].(float64); ok {
-			newTagIDs = append(newTagIDs, int64(id))
-		}
-	}
-
-	newSet, diag := types.SetValueFrom(ctx, types.Int64Type, newTagIDs)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	plan.TagIDs = newSet
+	plan.ID = plan.DeviceID
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -198,12 +191,16 @@ func (r *DeviceTagsResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	emptyReq := map[string]interface{}{
-		"tag_ids": []interface{}{},
+	tagIDs := planTagIDs(ctx, state.TagIDs, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if err := r.client.Put(ctx, fmt.Sprintf("/devices/%d/tags", state.DeviceID.ValueInt64()), emptyReq, nil); err != nil {
-		resp.Diagnostics.AddError("Error clearing device tags", fmt.Sprintf("Could not clear tags for device %d: %s", state.DeviceID.ValueInt64(), err))
+	if err := r.client.Put(ctx, "/devices/tags/unassign", tagAssignment(state.DeviceID.ValueInt64(), tagIDs), nil); err != nil {
+		resp.Diagnostics.AddError(
+			"Error clearing device tags",
+			fmt.Sprintf("Could not clear tags for device %d: %s", state.DeviceID.ValueInt64(), err),
+		)
 		return
 	}
 }

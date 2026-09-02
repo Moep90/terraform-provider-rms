@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Moep90/terraform-provider-rms/internal/api"
@@ -149,8 +150,14 @@ func (r *VPNHubResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	var result map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/vpn/hubs/%d", state.ID.ValueInt64()), nil, &result); err != nil {
+	// RMS exposes PUT on /vpn/hubs/{id} but no GET, so the hub has to be found
+	// in the collection.
+	result, err := findInList(ctx, r.client, "/vpn/hubs", state.ID.ValueInt64())
+	if err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading VPN hub", fmt.Sprintf("Could not read VPN hub %d: %s", state.ID.ValueInt64(), err))
 		return
 	}
@@ -171,11 +178,15 @@ func (r *VPNHubResource) Read(ctx context.Context, req resource.ReadRequest, res
 		state.VPNType = types.StringValue(vpnType)
 	}
 
-	// Parse tag_ids from response
-	if tagIDsRaw, ok := result["tag_id"].([]interface{}); ok {
-		tagIDs := make([]int64, 0, len(tagIDsRaw))
-		for _, tid := range tagIDsRaw {
-			if f, ok := tid.(float64); ok {
+	// The hub record carries its tags as objects, not as a tag_id array.
+	if tagsRaw, ok := result["tags"].([]interface{}); ok {
+		tagIDs := make([]int64, 0, len(tagsRaw))
+		for _, tag := range tagsRaw {
+			tagMap, ok := tag.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if f, ok := tagMap["id"].(float64); ok {
 				tagIDs = append(tagIDs, int64(f))
 			}
 		}
@@ -237,7 +248,7 @@ func (r *VPNHubResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		"id": []int{int(state.ID.ValueInt64())},
 	}
 
-	if err := r.client.Delete(ctx, "/vpn/hubs", deleteReq); err != nil {
+	if err := r.client.DeleteWithBody(ctx, "/vpn/hubs", deleteReq, nil); err != nil {
 		resp.Diagnostics.AddError("Error deleting VPN hub", fmt.Sprintf("Could not delete VPN hub %d: %s", state.ID.ValueInt64(), err))
 		return
 	}

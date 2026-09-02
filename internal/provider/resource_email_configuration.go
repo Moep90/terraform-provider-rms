@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Moep90/terraform-provider-rms/internal/api"
@@ -135,8 +136,14 @@ func (r *EmailConfigurationResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	var result map[string]interface{}
-	if err := r.client.Get(ctx, fmt.Sprintf("/email-configurations/%d", state.ID.ValueInt64()), nil, &result); err != nil {
+	// RMS exposes PUT and DELETE on /email-configurations/{id} but no GET, so
+	// the configuration has to be found in the collection.
+	result, err := findInList(ctx, r.client, "/email-configurations", state.ID.ValueInt64())
+	if err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading email configuration", fmt.Sprintf("Could not read email configuration %d: %s", state.ID.ValueInt64(), err))
 		return
 	}

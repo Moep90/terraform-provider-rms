@@ -333,7 +333,13 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	if err := r.client.Delete(ctx, fmt.Sprintf("/devices/%d", data.ID.ValueInt64()), nil); err != nil {
+	// DELETE /devices selects its targets through the request body; RMS exposes
+	// no DELETE /devices/{id}.
+	deleteReq := map[string]interface{}{
+		"device_id": []int64{data.ID.ValueInt64()},
+	}
+
+	if err := r.client.DeleteWithBody(ctx, "/devices", deleteReq, nil); err != nil {
 		resp.Diagnostics.AddError("Error deleting device", fmt.Sprintf("Could not delete device %d: %s", data.ID.ValueInt64(), err))
 		return
 	}
