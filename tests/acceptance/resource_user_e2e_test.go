@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,77 +12,42 @@ func TestAccUser_E2E(t *testing.T) {
 		t.Skip("RMS_ADMIN_TOKEN not set, skipping real API test")
 	}
 
-	token := os.Getenv("RMS_ADMIN_TOKEN")
-	baseURL := os.Getenv("RMS_BASE_URL")
-	if baseURL == "" {
-		baseURL = "https://rms.teltonika-networks.com/api"
-	}
-
-	resourceName := "rms_user.test"
+	const resourceName = "rms_user.test"
+	lookup := e2eReadByID("/users")
+	username := e2eRunPrefix + "-user"
+	email := e2eRunPrefix + "@example.com"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
+		CheckDestroy:             e2eCheckDestroyed("rms_user", lookup),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccUserE2EConfig(baseURL, token),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "username"),
-					resource.TestCheckResourceAttrSet(resourceName, "email"),
-					resource.TestCheckResourceAttrSet(resourceName, "role"),
+				Config: testAccUserE2EConfig(username, email, "end_user"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "email", email),
+					e2eCheckExists(resourceName, lookup),
 				),
 			},
 			{
-				Config: testAccUserE2EConfigUpdated(baseURL, token),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "username", "e2e-user-updated"),
-					resource.TestCheckResourceAttr(resourceName, "email", "updated@example.com"),
+				Config: testAccUserE2EConfig(username+"-updated", email, "admin"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "username", username+"-updated"),
 					resource.TestCheckResourceAttr(resourceName, "role", "admin"),
+					e2eCheckExists(resourceName, lookup),
 				),
 			},
 		},
 	})
 }
 
-func testAccUserE2EConfig(baseURL, token string) string {
-	return fmt.Sprintf(`
-provider "rms" {
-  token     = %q
-  base_url  = %q
-}
-
-resource "rms_company" "test" {
-  company_name = "E2E User Test Company"
-  parent_id    = %s
-}
-
+func testAccUserE2EConfig(username, email, role string) string {
+	return e2eCompanyConfig(e2eRunPrefix+"-user-company") + fmt.Sprintf(`
 resource "rms_user" "test" {
-  username   = "e2e-user-test"
-  email      = "e2e@example.com"
-  role       = "viewer"
+  username   = %q
+  email      = %q
+  role       = %q
   company_id = rms_company.test.id
 }
-`, token, baseURL, e2eParentCompanyID())
-}
-
-func testAccUserE2EConfigUpdated(baseURL, token string) string {
-	return fmt.Sprintf(`
-provider "rms" {
-  token     = %q
-  base_url  = %q
-}
-
-resource "rms_company" "test" {
-  company_name = "E2E User Test Company"
-  parent_id    = %s
-}
-
-resource "rms_user" "test" {
-  username   = "e2e-user-updated"
-  email      = "updated@example.com"
-  role       = "admin"
-  company_id = rms_company.test.id
-}
-`, token, baseURL, e2eParentCompanyID())
+`, username, email, role)
 }

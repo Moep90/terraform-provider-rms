@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,49 +12,34 @@ func TestAccDevice_E2E(t *testing.T) {
 		t.Skip("RMS_ADMIN_TOKEN not set, skipping real API test")
 	}
 
-	token := os.Getenv("RMS_ADMIN_TOKEN")
-	baseURL := os.Getenv("RMS_BASE_URL")
-	if baseURL == "" {
-		baseURL = "https://rms.teltonika-networks.com/api"
-	}
-
-	resourceName := "rms_device.test"
+	const resourceName = "rms_device.test"
+	lookup := e2eReadByID("/devices")
+	name := e2eRunPrefix + "-device"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
+		CheckDestroy:             e2eCheckDestroyed("rms_device", lookup),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceE2EConfig(baseURL, token),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "device_series"),
-					resource.TestCheckResourceAttrSet(resourceName, "serial"),
+				Config: testAccDeviceE2EConfig(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					e2eCheckExists(resourceName, lookup),
 				),
 			},
 		},
 	})
 }
 
-func testAccDeviceE2EConfig(baseURL, token string) string {
-	return fmt.Sprintf(`
-provider "rms" {
-  token     = %q
-  base_url  = %q
-}
-
-resource "rms_company" "test" {
-  company_name = "E2E Device Test Company"
-  parent_id    = %s
-}
-
+func testAccDeviceE2EConfig(name string) string {
+	return e2eCompanyConfig(name+"-company") + fmt.Sprintf(`
 resource "rms_device" "test" {
-  name             = "e2e-device-test"
-  device_series    = "rut"
-  serial           = "E2E123456789"
-  company_id       = rms_company.test.id
+  name               = %q
+  device_series      = "rut"
+  serial             = %q
+  company_id         = rms_company.test.id
   auto_credit_enable = true
 }
-`, token, baseURL, e2eParentCompanyID())
+`, name, "E2E"+e2eRunID)
 }

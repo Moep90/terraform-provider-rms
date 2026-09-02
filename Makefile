@@ -64,9 +64,13 @@ testacc:
 	@echo "Running acceptance tests..."
 	TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
 
-## Run E2E acceptance tests against real API
+## Run E2E acceptance tests against real API.
+## These create and destroy real objects in the tenant the token belongs to.
+## Required: RMS_ADMIN_TOKEN, RMS_PARENT_COMPANY_ID.
+## Optional: TELTONIKA_RMS_BASE_URL, RMS_VPN_HUB_ZONE, RMS_VPN_HUB_USER_ID.
+## Without RMS_ADMIN_TOKEN every E2E test skips.
 testacc-e2e:
-	@echo "Running E2E acceptance tests against real API..."
+	@echo "Running E2E acceptance tests against real API (creates and destroys real objects)..."
 	RUN_E2E_TESTS=true TF_ACC=1 $(GOTEST) -v -race ./$(TEST_DIR)/acceptance/
 
 ## Run linting
@@ -165,6 +169,8 @@ help:
 	@echo "  test        - Run all tests"
 	@echo "  test-unit   - Run only unit tests"
 	@echo "  test-coverage - Run tests with coverage report"
+	@echo "  testacc     - Run acceptance tests against mocks"
+	@echo "  testacc-e2e - Run E2E tests against real RMS (creates and destroys real objects)"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  lint        - Run golangci-lint"
