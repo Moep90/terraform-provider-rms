@@ -1,12 +1,9 @@
 package acceptance
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccCompany_E2E(t *testing.T) {
@@ -14,53 +11,29 @@ func TestAccCompany_E2E(t *testing.T) {
 		t.Skip("RMS_ADMIN_TOKEN not set, skipping real API test")
 	}
 
-	token := os.Getenv("RMS_ADMIN_TOKEN")
-	baseURL := os.Getenv("RMS_BASE_URL")
-	if baseURL == "" {
-		baseURL = "https://rms.teltonika-networks.com/api"
-	}
-
-	resourceName := "rms_company.test"
+	const resourceName = "rms_company.test"
+	lookup := e2eReadByID("/companies")
+	name := e2eRunPrefix + "-company"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
+		CheckDestroy:             e2eCheckDestroyed("rms_company", lookup),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCompanyE2EConfig(baseURL, token, "E2E Test Company"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "company_name"),
+				Config: e2eCompanyConfig(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "company_name", name),
+					e2eCheckExists(resourceName, lookup),
 				),
 			},
 			{
-				Config: testAccCompanyE2EConfig(baseURL, token, "E2E Test Company Updated"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "company_name", "E2E Test Company Updated"),
+				Config: e2eCompanyConfig(name + "-updated"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "company_name", name+"-updated"),
+					e2eCheckExists(resourceName, lookup),
 				),
-			},
-			{
-				ResourceName: resourceName,
-				ImportState:  true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return s.RootModule().Resources[resourceName].Primary.ID, nil
-				},
-				ImportStateVerify: true,
 			},
 		},
 	})
-}
-
-func testAccCompanyE2EConfig(baseURL, token, name string) string {
-	return fmt.Sprintf(`
-provider "rms" {
-  token     = %q
-  base_url  = %q
-}
-
-resource "rms_company" "test" {
-  company_name = %q
-  parent_id    = %s
-}
-`, token, baseURL, name, e2eParentCompanyID())
 }

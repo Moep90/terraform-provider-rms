@@ -192,10 +192,41 @@ go build -o terraform-provider-rms ./cmd/terraform-provider-rms
 # Run unit tests
 go test -v ./...
 
-# Run acceptance tests (requires real API credentials)
-export TELTONIKA_RMS_TOKEN="your-api-token"
-go test -v ./tests/acc/...
+# Run acceptance tests against mocked RMS endpoints
+make testacc
 ```
+
+### E2E tests
+
+`make testacc-e2e` runs the suite against a real RMS tenant. Each E2E test
+applies a configuration, confirms the object through an API read, destroys it
+and confirms it is gone. It creates and deletes real objects in the tenant the
+token belongs to. Objects are named with a per-run prefix (`tfe2e-<timestamp>`),
+so a run that aborts mid-apply leaves identifiable debris.
+
+Required:
+
+- `RMS_ADMIN_TOKEN`: API token. Without it every E2E test skips.
+- `RMS_PARENT_COMPANY_ID`: company the test objects are created under.
+- `RUN_E2E_TESTS=true`: set by `make testacc-e2e`, needed when running
+  `go test` directly.
+
+Optional:
+
+- `TELTONIKA_RMS_BASE_URL`: API host, defaults to the provider default.
+- `RMS_VPN_HUB_ZONE`: zone for the VPN hub test, defaults to `frankfurt-1`.
+- `RMS_VPN_HUB_USER_ID`: hub user for the VPN hub route test.
+
+```bash
+export RMS_ADMIN_TOKEN="your-api-token"
+export RMS_PARENT_COMPANY_ID="your-company-id"
+make testacc-e2e
+```
+
+`rms_vpn_hub` and `rms_vpn_hub_route` are expected to fail: their create parses
+an `id` the asynchronous RMS response does not carry. `rms_task` has no create
+operation at all, so its E2E test asserts the apply-time rejection instead of a
+lifecycle.
 
 ### Running with Terraform
 

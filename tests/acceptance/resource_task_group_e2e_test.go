@@ -2,11 +2,9 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccTaskGroup_E2E(t *testing.T) {
@@ -14,51 +12,31 @@ func TestAccTaskGroup_E2E(t *testing.T) {
 		t.Skip("RMS_ADMIN_TOKEN not set, skipping real API test")
 	}
 
-	token := os.Getenv("RMS_ADMIN_TOKEN")
-	baseURL := os.Getenv("RMS_BASE_URL")
-	if baseURL == "" {
-		baseURL = "https://rms.teltonika-networks.com/api"
-	}
-
-	resourceName := "rms_task_group.test"
+	const resourceName = "rms_task_group.test"
+	lookup := e2eReadByID("/devices/tasks/groups")
+	name := e2eRunPrefix + "-task-group"
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProtoV6ProviderFactories,
 		PreCheck:                 func() { testAccPreCheck(t) },
+		CheckDestroy:             e2eCheckDestroyed("rms_task_group", lookup),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTaskGroupE2EConfig(baseURL, token, "E2E Test Task Group", 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "name", "E2E Test Task Group"),
-					resource.TestCheckResourceAttr(resourceName, "company_id", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "status"),
-					resource.TestCheckResourceAttrSet(resourceName, "task_count"),
-					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
+				Config: testAccTaskGroupE2EConfig(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					e2eCheckExists(resourceName, lookup),
 				),
-			},
-			{
-				ResourceName: resourceName,
-				ImportState:  true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return s.RootModule().Resources[resourceName].Primary.ID, nil
-				},
-				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccTaskGroupE2EConfig(baseURL, token, name string, companyID int) string {
-	return fmt.Sprintf(`
-provider "rms" {
-  token     = %q
-  base_url  = %q
-}
-
+func testAccTaskGroupE2EConfig(name string) string {
+	return e2eCompanyConfig(e2eRunPrefix+"-task-group-company") + fmt.Sprintf(`
 resource "rms_task_group" "test" {
-  name        = %q
-  company_id  = %d
+  name       = %q
+  company_id = rms_company.test.id
 }
-`, token, baseURL, name, companyID)
+`, name)
 }
