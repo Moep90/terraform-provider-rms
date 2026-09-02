@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Moep90/terraform-provider-rms/internal/api"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -267,5 +268,16 @@ func (r *TaskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *TaskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// "id" is an Int64 attribute, so the raw string import ID cannot be passed
+	// through unconverted.
+	id, err := strconv.ParseInt(req.ID, 10, 64)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid import ID",
+			fmt.Sprintf("Expected a numeric task ID, got %q.", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }
