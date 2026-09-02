@@ -34,7 +34,7 @@ func e2eClient() *api.Client {
 
 	baseURL := os.Getenv("TELTONIKA_RMS_BASE_URL")
 	if baseURL == "" {
-		baseURL = api.BaseURLV3
+		baseURL = api.BaseURL
 	}
 
 	return api.NewClientWithOptions(context.Background(), token, baseURL, api.Timeout, api.MaxRetries, "e2e")
